@@ -18,25 +18,25 @@ app.use(
     session({
         secret:
             process.env.SESSION_SECRET ||
-            "CIA-RP-CHANGE-THIS-SECRET-2026",
+            "CHANGE_THIS_SECRET_2026_CIA_RP",
         resave: false,
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            sameSite: "lax",
             secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
             maxAge: 1000 * 60 * 60 * 24 * 30
         }
     })
 );
 
-/* =========================
+/* =====================================================
    DATABASE
-========================= */
+===================================================== */
 
-const db = new Database(
-    path.join(__dirname, "cia.db")
-);
+const dbPath = path.join(__dirname, "cia.db");
+
+const db = new Database(dbPath);
 
 db.pragma("journal_mode = WAL");
 
@@ -52,16 +52,16 @@ CREATE TABLE IF NOT EXISTS audit (
 );
 `);
 
-/* =========================
-   GET VISITOR IP
-========================= */
+/* =====================================================
+   IP
+===================================================== */
 
-function getIP(req) {
-    const cf =
+function getClientIP(req) {
+    const cloudflareIP =
         req.headers["cf-connecting-ip"];
 
-    if (cf) {
-        return String(cf)
+    if (cloudflareIP) {
+        return String(cloudflareIP)
             .split(",")[0]
             .trim()
             .replace("::ffff:", "");
@@ -81,22 +81,21 @@ function getIP(req) {
         req.socket.remoteAddress ||
             "unknown"
     )
-        .replace("::ffff:", "")
-        .trim();
+        .trim()
+        .replace("::ffff:", "");
 }
 
-/* =========================
-   AUDIT
-========================= */
+/* =====================================================
+   AUDIT LOGGER
+===================================================== */
 
-function addAudit(
-    req,
-    action,
-    details = ""
-) {
+function addAudit(req, action, details = "") {
     try {
         const user =
-            req.session?.user || null;
+            req.session &&
+            req.session.user
+                ? req.session.user
+                : null;
 
         db.prepare(`
             INSERT INTO audit
@@ -112,24 +111,28 @@ function addAudit(
             user?.id || null,
             user?.username || "PUBLIC",
             action,
-            getIP(req),
+            getClientIP(req),
             details
         );
-    } catch (err) {
+
+        console.log(
+            `[AUDIT] ${action} | IP: ${getClientIP(req)}`
+        );
+    } catch (error) {
         console.error(
-            "Audit error:",
-            err
+            "[AUDIT ERROR]",
+            error
         );
     }
 }
 
-/* =========================
-   HOME
-========================= */
+/* =====================================================
+   PUBLIC WEBSITE
+===================================================== */
 
 /*
-   يسجل الزائر مرة واحدة عند
-   دخول الصفحة الرئيسية.
+   أول ما يدخل شخص الموقع:
+   يتم تسجيل IP في audit.
 */
 
 app.get("/", (req, res) => {
@@ -139,121 +142,111 @@ app.get("/", (req, res) => {
         "Visitor opened website"
     );
 
-    const indexPath =
-        path.join(
-            __dirname,
-            "index.html"
-        );
+    const indexPath = path.join(
+        __dirname,
+        "public",
+        "index.html"
+    );
 
     if (!fs.existsSync(indexPath)) {
         return res
             .status(404)
-            .send(
-                "index.html not found."
-            );
+            .send("public/index.html not found.");
     }
 
     res.sendFile(indexPath);
 });
 
-/* =========================
-   LOGIN SESSION
-========================= */
-
-app.post(
-    "/api/login",
-    (req, res) => {
-        const {
-            username
-        } = req.body;
-
-        /*
-           هذا مجرد نظام جلسة بسيط.
-           اربطه بنظام تسجيل الدخول
-           الموجود عندك إذا كان عندك
-           نظام مستخدمين منفصل.
-        */
-
-        if (!username) {
-            return res.status(400).json({
-                error: "USERNAME_REQUIRED"
-            });
-        }
-
-        req.session.user = {
-            username: String(
-                username
-            )
-        };
-
-        addAudit(
-            req,
-            "LOGIN",
-            `username=${username}`
-        );
-
-        res.json({
-            ok: true,
-            user: req.session.user
-        });
-    }
-);
-
-/* =========================
+/* =====================================================
    CURRENT USER
-========================= */
+===================================================== */
 
-app.get(
-    "/api/me",
-    (req, res) => {
-        res.json({
-            authenticated:
-                !!req.session.user,
-            user:
-                req.session.user ||
-                null
+app.get("/api/me", (req, res) => {
+    if (!req.session.user) {
+        return res.json({
+            authenticated: false,
+            user: null
         });
     }
-);
 
-/* =========================
-   LOGOUT
-========================= */
+    res.json({
+        authenticated: true,
+        user: req.session.user
+    });
+});
 
-app.get(
-    "/logout",
-    (req, res) => {
-        if (req.session.user) {
-            addAudit(
-                req,
-                "LOGOUT"
-            );
-        }
-
-        req.session.destroy(() => {
-            res.redirect("/");
-        });
-    }
-);
-
-/* =========================
-   COMMAND LOGS
-========================= */
+/* =====================================================
+   LOGIN
+===================================================== */
 
 /*
-   مهم:
-   فقط code_alpha يستطيع
-   رؤية الـ IP والـ logs.
+   هذا endpoint تجريبي بسيط للجلسة.
+   إذا كان index.html عندك يحتوي نظام تسجيل
+   دخول خاص به، يمكنك ربطه بهذا endpoint.
+*/
+
+app.post("/api/login", (req, res) => {
+    const username = String(
+        req.body.username || ""
+    ).trim();
+
+    if (!username) {
+        return res.status(400).json({
+            error: "USERNAME_REQUIRED"
+        });
+    }
+
+    req.session.user = {
+        username: username
+    };
+
+    addAudit(
+        req,
+        "LOGIN",
+        `username=${username}`
+    );
+
+    res.json({
+        ok: true,
+        user: req.session.user
+    });
+});
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+app.get("/logout", (req, res) => {
+    if (req.session.user) {
+        addAudit(req, "LOGOUT");
+    }
+
+    req.session.destroy(() => {
+        res.redirect("/");
+    });
+});
+
+/* =====================================================
+   COMMAND AUDIT
+===================================================== */
+
+/*
+   مهم جدًا:
+
+   فقط:
+       code_alpha
+
+   يستطيع مشاهدة الـlogs.
+
+   أي شخص آخر يحصل على 403.
 */
 
 app.get(
     "/api/admin/logs",
     (req, res) => {
-
         if (!req.session.user) {
             return res.status(401).json({
-                error:
-                    "AUTH_REQUIRED"
+                error: "AUTH_REQUIRED"
             });
         }
 
@@ -262,45 +255,54 @@ app.get(
             "code_alpha"
         ) {
             return res.status(403).json({
-                error:
-                    "FORBIDDEN"
+                error: "FORBIDDEN"
             });
         }
 
-        const logs =
-            db.prepare(`
-                SELECT
-                    id,
-                    actor,
-                    actor_label,
-                    action,
-                    ip,
-                    details,
-                    created_at
-                FROM audit
-                ORDER BY id DESC
-                LIMIT 500
-            `).all();
+        try {
+            const logs = db
+                .prepare(`
+                    SELECT
+                        id,
+                        actor,
+                        actor_label,
+                        action,
+                        ip,
+                        details,
+                        created_at
+                    FROM audit
+                    ORDER BY id DESC
+                    LIMIT 500
+                `)
+                .all();
 
-        res.json({
-            ok: true,
-            logs
-        });
+            res.json({
+                ok: true,
+                logs: logs
+            });
+        } catch (error) {
+            console.error(
+                "Logs error:",
+                error
+            );
+
+            res.status(500).json({
+                error: "LOGS_ERROR"
+            });
+        }
     }
 );
 
-/* =========================
-   SECOND LOG ENDPOINT
-========================= */
+/* =====================================================
+   COMMAND AUDIT ALIAS
+===================================================== */
 
 app.get(
     "/api/command/audit",
     (req, res) => {
-
         if (!req.session.user) {
             return res.status(401).json({
-                error:
-                    "AUTH_REQUIRED"
+                error: "AUTH_REQUIRED"
             });
         }
 
@@ -309,58 +311,98 @@ app.get(
             "code_alpha"
         ) {
             return res.status(403).json({
-                error:
-                    "FORBIDDEN"
+                error: "FORBIDDEN"
             });
         }
 
-        const logs =
-            db.prepare(`
-                SELECT
-                    id,
-                    actor,
-                    actor_label,
-                    action,
-                    ip,
-                    details,
-                    created_at
-                FROM audit
-                ORDER BY id DESC
-                LIMIT 500
-            `).all();
+        try {
+            const logs = db
+                .prepare(`
+                    SELECT
+                        id,
+                        actor,
+                        actor_label,
+                        action,
+                        ip,
+                        details,
+                        created_at
+                    FROM audit
+                    ORDER BY id DESC
+                    LIMIT 500
+                `)
+                .all();
 
-        res.json({
-            ok: true,
-            logs
+            res.json({
+                ok: true,
+                logs: logs
+            });
+        } catch (error) {
+            console.error(
+                "Command audit error:",
+                error
+            );
+
+            res.status(500).json({
+                error: "LOGS_ERROR"
+            });
+        }
+    }
+);
+
+/* =====================================================
+   STATIC PUBLIC FILES
+===================================================== */
+
+app.use(
+    express.static(
+        path.join(
+            __dirname,
+            "public"
+        )
+    )
+);
+
+/* =====================================================
+   404
+===================================================== */
+
+app.use((req, res) => {
+    res.status(404).send(
+        "Page not found."
+    );
+});
+
+/* =====================================================
+   ERROR HANDLER
+===================================================== */
+
+app.use(
+    (err, req, res, next) => {
+        console.error(
+            "[SERVER ERROR]",
+            err
+        );
+
+        if (res.headersSent) {
+            return next(err);
+        }
+
+        res.status(500).json({
+            error: "SERVER_ERROR"
         });
     }
 );
 
-/* =========================
-   STATIC FILES
-========================= */
-
-/*
-   بما أنك قلت إن عندك index.html
-   فقط، نخليه من جذر المشروع.
-*/
-
-app.use(
-    express.static(
-        __dirname
-    )
-);
-
-/* =========================
-   START
-========================= */
+/* =====================================================
+   START SERVER
+===================================================== */
 
 app.listen(
     PORT,
     HOST,
     () => {
         console.log(
-            "================================"
+            "===================================="
         );
 
         console.log(
@@ -372,11 +414,23 @@ app.listen(
         );
 
         console.log(
-            "Audit endpoint: /api/admin/logs"
+            `DATABASE: ${dbPath}`
         );
 
         console.log(
-            "================================"
+            "INDEX: /public/index.html"
+        );
+
+        console.log(
+            "AUDIT: /api/admin/logs"
+        );
+
+        console.log(
+            "COMMAND USER: code_alpha"
+        );
+
+        console.log(
+            "===================================="
         );
     }
 );
