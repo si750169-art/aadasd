@@ -1,509 +1,529 @@
 <!doctype html>
 <html lang="en">
-
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>CIA // Intelligence Command</title>
 
 <style>
-
 :root{
-    --bg:#04070a;
-    --p:#091016;
-    --p2:#0d151c;
-    --l:#1c2a33;
-    --t:#eaf0f3;
-    --m:#71808a;
-    --r:#d71920;
-    --g:#35d39c;
-    --a:#e5b84c;
+--bg:#04070a;
+--p:#091016;
+--p2:#0d151c;
+--l:#1c2a33;
+--t:#eaf0f3;
+--m:#71808a;
+--r:#d71920;
+--g:#35d39c;
+--a:#e5b84c
 }
 
-*{
-    box-sizing:border-box
-}
+*{box-sizing:border-box}
 
 body{
-    margin:0;
-    background:
-        radial-gradient(
-            circle at 80% 0,
-            #162028 0,
-            #04070a 42%
-        );
-    color:var(--t);
-    font-family:Arial,Tahoma,sans-serif
+margin:0;
+background:radial-gradient(circle at 80% 0,#162028 0,#04070a 42%);
+color:var(--t);
+font-family:Arial,Tahoma,sans-serif
 }
 
-button,
-input,
-select,
-textarea{
-    font:inherit
-}
+button,input,select,textarea{font:inherit}
 
 .wrap{
-    max-width:1280px;
-    margin:auto;
-    padding:24px
+max-width:1280px;
+margin:auto;
+padding:24px
 }
 
 .top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border-bottom:1px solid var(--l);
-    padding-bottom:17px
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:1px solid var(--l);
+padding-bottom:17px
 }
 
 .brand{
-    font-weight:900;
-    letter-spacing:2px
+font-weight:900;
+letter-spacing:2px
 }
 
 .mono{
-    font-family:Consolas,monospace
+font-family:Consolas,monospace
 }
 
 .muted{
-    color:var(--m);
-    font-size:12px
+color:var(--m);
+font-size:12px
 }
 
 .btn{
-    background:#111a21;
-    border:1px solid #33444d;
-    color:#fff;
-    padding:9px 13px;
-    border-radius:5px;
-    cursor:pointer
+background:#111a21;
+border:1px solid #33444d;
+color:#fff;
+padding:9px 13px;
+border-radius:5px;
+cursor:pointer
 }
 
 .btn:hover{
-    filter:brightness(1.2)
+filter:brightness(1.2)
 }
 
 .red{
-    background:#351014;
-    border-color:#72252c
+background:#351014;
+border-color:#72252c
 }
 
 .green{
-    background:#0c2a20;
-    border-color:#28674f
+background:#0c2a20;
+border-color:#28674f
 }
 
 .amber{
-    background:#2a2412;
-    border-color:#65531f
+background:#2a2412;
+border-color:#65531f
 }
 
 .small{
-    padding:6px 9px;
-    font-size:11px
+padding:6px 9px;
+font-size:11px
 }
 
-.hero,
-.panel,
-.card{
-    background:rgba(8,14,19,.96);
-    border:1px solid var(--l);
-    border-radius:7px
+.hero,.panel,.card{
+background:rgba(8,14,19,.96);
+border:1px solid var(--l);
+border-radius:7px
 }
 
 .hero{
-    padding:36px;
-    margin:25px 0;
-    position:relative;
-    overflow:hidden
+padding:36px;
+margin:25px 0;
+position:relative;
+overflow:hidden
 }
 
 .hero:after{
-    content:'CLASSIFIED // CIA ROLEPLAY';
-    position:absolute;
-    left:20px;
-    bottom:13px;
-    color:#26343d;
-    font:10px Consolas;
-    transform:rotate(-8deg)
+content:'CLASSIFIED // CIA ROLEPLAY';
+position:absolute;
+left:20px;
+bottom:13px;
+color:#26343d;
+font:10px Consolas;
+transform:rotate(-8deg)
 }
 
 h1{
-    font-size:34px;
-    margin:8px 0
+font-size:34px;
+margin:8px 0
 }
 
 .hero p{
-    max-width:800px;
-    color:#9aa7ae;
-    line-height:1.8
+max-width:800px;
+color:#9aa7ae;
+line-height:1.8
 }
 
 .grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:14px
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:14px
 }
 
-.card,
-.panel{
-    padding:18px
+.card,.panel{
+padding:18px
 }
 
 .panel{
-    margin-top:14px
+margin-top:14px
 }
 
 .field{
-    margin:10px 0
+margin:10px 0
 }
 
 .field label{
-    display:block;
-    color:#84929a;
-    font:11px Consolas;
-    margin-bottom:6px
+display:block;
+color:#84929a;
+font:11px Consolas;
+margin-bottom:6px
 }
 
 .input{
-    width:100%;
-    background:#04080b;
-    border:1px solid #263640;
-    color:#fff;
-    border-radius:5px;
-    padding:10px;
-    outline:0
+width:100%;
+background:#04080b;
+border:1px solid #263640;
+color:#fff;
+border-radius:5px;
+padding:10px;
+outline:0
 }
 
 .input:focus{
-    border-color:#71848e
+border-color:#71848e
 }
 
 .cols{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:13px
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:13px
 }
 
 .tabs{
-    display:flex;
-    gap:7px;
-    flex-wrap:wrap;
-    margin:15px 0
+display:flex;
+gap:7px;
+flex-wrap:wrap;
+margin:15px 0
 }
 
 .tag{
-    display:inline-block;
-    border:1px solid #3b4a53;
-    border-radius:3px;
-    padding:4px 7px;
-    font:10px Consolas;
-    color:#c7d0d5;
-    margin:2px
+display:inline-block;
+border:1px solid #3b4a53;
+border-radius:3px;
+padding:4px 7px;
+font:10px Consolas;
+color:#c7d0d5;
+margin:2px
 }
 
 .tag.red{
-    border-color:#6c252c;
-    color:#ff6c73
+border-color:#6c252c;
+color:#ff6c73
 }
 
 .tag.green{
-    border-color:#25684f;
-    color:#48dfa9
+border-color:#25684f;
+color:#48dfa9
 }
 
 .tag.amber{
-    border-color:#66541f;
-    color:#e7c25d
+border-color:#66541f;
+color:#e7c25d
 }
 
 .table{
-    width:100%;
-    border-collapse:collapse
+width:100%;
+border-collapse:collapse
 }
 
 .table th,
 .table td{
-    border-bottom:1px solid #17242d;
-    padding:11px;
-    text-align:left;
-    font-size:12px;
-    vertical-align:top
+border-bottom:1px solid #17242d;
+padding:11px;
+text-align:left;
+font-size:12px;
+vertical-align:top
 }
 
 .table th{
-    color:#687780;
-    font:10px Consolas
+color:#687780;
+font:10px Consolas
 }
 
 .notice{
-    border-left:3px solid var(--r);
-    background:#120b0d;
-    padding:12px;
-    color:#aeb9bf;
-    font-size:12px
-}
-
-.toast{
-    position:fixed;
-    left:22px;
-    bottom:22px;
-    z-index:9999;
-    min-width:280px;
-    max-width:420px;
-    background:#0a1117;
-    border:1px solid #33434e;
-    color:#e8eef2;
-    padding:13px 15px;
-    border-radius:6px;
-    box-shadow:0 15px 45px #000;
-    transform:translateY(20px);
-    opacity:0;
-    pointer-events:none;
-    transition:.2s
-}
-
-.toast.show{
-    transform:translateY(0);
-    opacity:1
+border-left:3px solid var(--r);
+background:#120b0d;
+padding:12px;
+color:#aeb9bf;
+font-size:12px
 }
 
 .modal{
-    position:fixed;
-    inset:0;
-    background:#000c;
-    display:grid;
-    place-items:center;
-    z-index:90;
-    padding:20px
+position:fixed;
+inset:0;
+background:#000c;
+display:grid;
+place-items:center;
+z-index:90;
+padding:20px
 }
 
 .modalbox{
-    width:min(1100px,96vw);
-    height:min(800px,94vh);
-    background:#080d12;
-    border:1px solid #3b4b55;
-    border-radius:8px;
-    overflow:hidden;
-    display:flex;
-    flex-direction:column
+width:min(1100px,96vw);
+height:min(800px,94vh);
+background:#080d12;
+border:1px solid #3b4b55;
+border-radius:8px;
+overflow:hidden;
+display:flex;
+flex-direction:column
 }
 
 .modalhead{
-    padding:10px 14px;
-    border-bottom:1px solid var(--l);
-    display:flex;
-    justify-content:space-between
+padding:10px 14px;
+border-bottom:1px solid var(--l);
+display:flex;
+justify-content:space-between
 }
 
 .modal iframe{
-    width:100%;
-    height:100%;
-    border:0;
-    background:#222
+width:100%;
+height:100%;
+border:0;
+background:#222
 }
 
 .hidden{
-    display:none!important
+display:none!important
 }
 
 .empty{
-    padding:30px;
-    text-align:center;
-    color:var(--m)
+padding:30px;
+text-align:center;
+color:var(--m)
 }
 
 .kicker{
-    font:11px Consolas;
-    color:#ff4b55;
-    letter-spacing:2px
+font:11px Consolas;
+color:#ff4b55;
+letter-spacing:2px
 }
 
 .profile{
-    display:flex;
-    gap:7px;
-    flex-wrap:wrap
+display:flex;
+gap:7px;
+flex-wrap:wrap
 }
 
 .message{
-    margin:10px 0
+margin:10px 0
 }
 
 .message.unread{
-    border-color:#743039
+border-color:#743039
 }
 
 .message p{
-    white-space:pre-line;
-    line-height:1.7
+white-space:pre-line;
+line-height:1.7
 }
 
 .login{
-    max-width:550px;
-    margin:70px auto
+max-width:550px;
+margin:70px auto
 }
 
 .danger{
-    color:#ff6570
+color:#ff6570
 }
 
 .ok{
-    color:var(--g)
+color:var(--g)
 }
 
 .langbox{
-    display:flex;
-    border:1px solid #27343e;
-    background:#080d12;
-    border-radius:5px;
-    overflow:hidden
+display:flex;
+border:1px solid #27343e;
+background:#080d12;
+border-radius:5px;
+overflow:hidden
 }
 
 .lang{
-    border:0;
-    background:transparent;
-    color:#71808b;
-    padding:7px 10px;
-    font:11px "IBM Plex Mono"
+border:0;
+background:transparent;
+color:#71808b;
+padding:7px 10px;
+font:11px Consolas
 }
 
 .lang.active{
-    background:#16212a;
-    color:#fff
+background:#16212a;
+color:#fff
+}
+
+.toast{
+position:fixed;
+left:22px;
+bottom:22px;
+z-index:9999;
+min-width:280px;
+max-width:420px;
+background:#0a1117;
+border:1px solid #33434e;
+color:#e8eef2;
+padding:13px 15px;
+border-radius:6px;
+box-shadow:0 15px 45px #000;
+transform:translateY(20px);
+opacity:0;
+pointer-events:none;
+transition:.2s
+}
+
+.toast.show{
+transform:translateY(0);
+opacity:1
 }
 
 .rtl{
-    direction:rtl
+direction:rtl
 }
 
 .rtl .top{
-    direction:rtl
+direction:rtl
 }
 
 .rtl .table{
-    text-align:right
+text-align:right
 }
 
 .rtl .field{
-    text-align:right
+text-align:right
 }
 
 /* =====================================================
-   ALPHA LOG PANEL
+   ALPHA LOG TERMINAL
 ===================================================== */
 
-.alpha-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:15px;
-    flex-wrap:wrap
+.alphaPage{
+min-height:calc(100vh - 90px);
+padding-top:25px
 }
 
-.alpha-title{
-    display:flex;
-    align-items:center;
-    gap:10px
+.alphaHeader{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:15px;
+padding:18px;
+background:#070d12;
+border:1px solid #51383a;
+border-radius:7px;
+margin-bottom:14px
 }
 
-.alpha-badge{
-    display:inline-block;
-    padding:5px 9px;
-    border:1px solid #72252c;
-    background:#351014;
-    color:#ff6870;
-    border-radius:4px;
-    font:10px Consolas;
-    letter-spacing:1px
+.alphaTitle{
+font-family:Consolas,monospace;
+font-weight:900;
+letter-spacing:3px;
+color:#ff4b55
 }
 
-.log-table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:800px
+.alphaSubtitle{
+font:11px Consolas;
+color:#71808a;
+margin-top:5px
 }
 
-.log-table th{
-    text-align:left;
-    padding:12px;
-    border-bottom:1px solid #263640;
-    color:#71808a;
-    font:10px Consolas;
-    letter-spacing:1px;
-    background:#070d12
+.alphaStatus{
+display:flex;
+align-items:center;
+gap:8px
 }
 
-.log-table td{
-    padding:12px;
-    border-bottom:1px solid #17242d;
-    color:#dce4e8;
-    font-size:12px;
-    vertical-align:top
+.statusDot{
+width:8px;
+height:8px;
+border-radius:50%;
+background:#35d39c;
+box-shadow:0 0 12px #35d39c
 }
 
-.log-table tr:hover{
-    background:#0d151c
+.alphaTools{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+margin-bottom:14px
 }
 
-.log-action{
-    color:#e5b84c;
-    font-family:Consolas,monospace;
-    font-size:11px
+.alphaSearch{
+max-width:420px;
+flex:1
 }
 
-.log-ip{
-    color:#7dd7ff;
-    font-family:Consolas,monospace
+.logTable{
+width:100%;
+border-collapse:collapse
 }
 
-.log-details{
-    color:#aeb9bf;
-    white-space:pre-wrap;
-    word-break:break-word
+.logTable th{
+font:10px Consolas;
+color:#63727b;
+text-align:left;
+padding:12px;
+border-bottom:1px solid #25333c
 }
 
-.log-scroll{
-    overflow-x:auto
+.logTable td{
+font:12px Consolas;
+padding:12px;
+border-bottom:1px solid #142129;
+vertical-align:top
 }
 
-.alpha-status{
-    margin-top:10px;
-    display:flex;
-    gap:7px;
-    flex-wrap:wrap
+.logTable tr:hover{
+background:#0b151c
+}
+
+.logId{
+color:#667984
+}
+
+.logAction{
+color:#e5b84c
+}
+
+.logActor{
+color:#35d39c
+}
+
+.logIp{
+color:#d7a3a5
+}
+
+.logDetails{
+color:#9ba8af;
+white-space:pre-wrap;
+word-break:break-word
+}
+
+.alphaOnly{
+border:1px solid #55272b;
+background:#11090b;
+padding:10px 12px;
+border-radius:5px;
+font:10px Consolas;
+color:#ff7077
 }
 
 @media(max-width:800px){
-
-    .grid,
-    .cols{
-        grid-template-columns:1fr
-    }
-
-    .wrap{
-        padding:14px
-    }
-
-    h1{
-        font-size:26px
-    }
-
-    .table{
-        font-size:11px
-    }
-
-    .table th,
-    .table td{
-        padding:8px
-    }
-
-    .log-table{
-        min-width:700px
-    }
+.grid,.cols{
+grid-template-columns:1fr
 }
 
+.wrap{
+padding:14px
+}
+
+h1{
+font-size:26px
+}
+
+.table{
+font-size:11px
+}
+
+.table th,
+.table td{
+padding:8px
+}
+
+.alphaHeader{
+align-items:flex-start;
+flex-direction:column
+}
+
+.logTable{
+min-width:900px
+}
+
+.logScroll{
+overflow:auto
+}
+}
 </style>
 </head>
 
@@ -512,56 +532,27 @@ h1{
 <div class="wrap">
 
 <!-- =====================================================
-     TOP BAR
+     TOP
 ===================================================== -->
 
 <div class="top">
 
-    <div>
-        <div class="brand">
-            CIA // INTELLIGENCE COMMAND
-        </div>
+<div>
+<div class="brand">CIA // INTELLIGENCE COMMAND</div>
+<div class="muted mono">INTERNAL ROLEPLAY NETWORK</div>
+</div>
 
-        <div class="muted mono">
-            INTERNAL ROLEPLAY NETWORK
-        </div>
-    </div>
+<div id="topActions" style="display:flex;gap:8px;align-items:center">
 
-    <div style="display:flex;gap:8px;align-items:center">
+<div class="langbox">
+<button id="langEN" class="lang active" onclick="setLang('en')">EN</button>
+<button id="langAR" class="lang" onclick="setLang('ar')">عربي</button>
+</div>
 
-        <div class="langbox">
-            <button
-                id="langEN"
-                class="lang active"
-                onclick="setLang('en')">
-                EN
-            </button>
+<button class="btn" onclick="loginPage()">LOGIN</button>
+<button class="btn red" onclick="applyPage()">APPLY</button>
 
-            <button
-                id="langAR"
-                class="lang"
-                onclick="setLang('ar')">
-                عربي
-            </button>
-        </div>
-
-        <div id="topActions">
-
-            <button
-                class="btn"
-                onclick="loginPage()">
-                LOGIN
-            </button>
-
-            <button
-                class="btn red"
-                onclick="applyPage()">
-                APPLY
-            </button>
-
-        </div>
-
-    </div>
+</div>
 
 </div>
 
@@ -574,91 +565,55 @@ h1{
 
 <section class="hero">
 
-    <div class="kicker">
-        CENTRAL INTELLIGENCE AGENCY // SECURE PORTAL
-    </div>
+<div class="kicker">
+CENTRAL INTELLIGENCE AGENCY // SECURE PORTAL
+</div>
 
-    <h1>
-        INTELLIGENCE COMMAND
-    </h1>
+<h1>INTELLIGENCE COMMAND</h1>
 
-    <p>
-        Recruitment, personnel, missions, messages
-        and classified reports in one persistent
-        role-play command system.
-    </p>
+<p>
+Recruitment, personnel, missions, messages and classified reports
+in one persistent role-play command system.
+</p>
 
-    <button
-        class="btn red"
-        onclick="applyPage()">
-        SUBMIT CIA APPLICATION
-    </button>
+<button class="btn red" onclick="applyPage()">
+SUBMIT CIA APPLICATION
+</button>
 
-    <button
-        class="btn"
-        onclick="loginPage()">
-        PERSONNEL LOGIN
-    </button>
+<button class="btn" onclick="loginPage()">
+PERSONNEL LOGIN
+</button>
 
 </section>
 
 
 <div class="grid">
 
-    <div class="card">
+<div class="card">
+<span class="tag">RECRUITMENT</span>
+<h3>Apply in English</h3>
+<p class="muted">
+Submit your exact in-game name.
+Your application receives a private persistent dashboard.
+</p>
+</div>
 
-        <span class="tag">
-            RECRUITMENT
-        </span>
+<div class="card">
+<span class="tag green">PERSISTENT</span>
+<h3>Private Dashboard</h3>
+<p class="muted">
+Return later from the same browser and your application
+status and messages remain.
+</p>
+</div>
 
-        <h3>
-            Apply in English
-        </h3>
-
-        <p class="muted">
-            Submit your exact in-game name.
-            Your application receives a private
-            persistent dashboard.
-        </p>
-
-    </div>
-
-
-    <div class="card">
-
-        <span class="tag green">
-            PERSISTENT
-        </span>
-
-        <h3>
-            Private Dashboard
-        </h3>
-
-        <p class="muted">
-            Return later from the same browser
-            and your application status and
-            messages remain.
-        </p>
-
-    </div>
-
-
-    <div class="card">
-
-        <span class="tag red">
-            CLASSIFIED
-        </span>
-
-        <h3>
-            Command Reports
-        </h3>
-
-        <p class="muted">
-            Authorized personnel can register
-            real PDF intelligence reports.
-        </p>
-
-    </div>
+<div class="card">
+<span class="tag red">CLASSIFIED</span>
+<h3>Command Reports</h3>
+<p class="muted">
+Authorized personnel can register real PDF intelligence reports.
+</p>
+</div>
 
 </div>
 
@@ -669,17 +624,13 @@ h1{
      AUTH
 ===================================================== -->
 
-<div
-    id="auth"
-    class="panel login hidden">
+<div id="auth" class="panel login hidden">
 
-    <div
-        id="authTitle"
-        class="kicker">
-        SECURE LOGIN
-    </div>
+<div id="authTitle" class="kicker">
+SECURE LOGIN
+</div>
 
-    <div id="authBody"></div>
+<div id="authBody"></div>
 
 </div>
 
@@ -690,47 +641,39 @@ h1{
 
 <div id="appDash" class="hidden">
 
-    <div class="hero">
+<div class="hero">
 
-        <div class="kicker">
-            APPLICANT DASHBOARD
-        </div>
+<div class="kicker">
+APPLICANT DASHBOARD
+</div>
 
-        <h1 id="appNameTitle">
-            APPLICATION
-        </h1>
+<h1 id="appNameTitle">
+APPLICATION
+</h1>
 
-        <div id="appStatus"></div>
+<div id="appStatus"></div>
 
-        <p id="appMeta"></p>
+<p id="appMeta"></p>
 
-    </div>
+</div>
 
+<div class="tabs">
 
-    <div class="tabs">
+<button class="btn" onclick="appTab('messages')">
+MESSAGES
+</button>
 
-        <button
-            class="btn"
-            onclick="appTab('messages')">
-            MESSAGES
-        </button>
+<button class="btn" onclick="appTab('application')">
+APPLICATION FILE
+</button>
 
-        <button
-            class="btn"
-            onclick="appTab('application')">
-            APPLICATION FILE
-        </button>
+<button class="btn" onclick="backHome()">
+HOME
+</button>
 
-        <button
-            class="btn"
-            onclick="backHome()">
-            HOME
-        </button>
+</div>
 
-    </div>
-
-
-    <div id="appContent"></div>
+<div id="appContent"></div>
 
 </div>
 
@@ -741,65 +684,140 @@ h1{
 
 <div id="userDash" class="hidden">
 
-    <div class="hero">
+<div class="hero">
 
-        <div class="kicker">
-            PERSONNEL DASHBOARD
-        </div>
+<div class="kicker">
+PERSONNEL DASHBOARD
+</div>
 
-        <h1 id="welcome"></h1>
+<h1 id="welcome"></h1>
 
-        <div
-            id="profile"
-            class="profile">
-        </div>
+<div id="profile" class="profile"></div>
 
-    </div>
+</div>
 
+<div class="tabs">
 
-    <div class="tabs">
+<button class="btn" onclick="userTab('messages')">
+MESSAGES
+</button>
 
-        <button
-            class="btn"
-            onclick="userTab('messages')">
-            MESSAGES
-        </button>
+<button class="btn" onclick="userTab('reports')">
+REPORTS
+</button>
 
-        <button
-            class="btn"
-            onclick="userTab('reports')">
-            REPORTS
-        </button>
+<button class="btn" onclick="userTab('sector')">
+SECTOR DIRECTORY
+</button>
 
-        <button
-            class="btn"
-            onclick="userTab('sector')">
-            SECTOR DIRECTORY
-        </button>
+<button class="btn" onclick="userTab('profile')">
+PERSONNEL FILE
+</button>
 
-        <button
-            class="btn"
-            onclick="userTab('profile')">
-            PERSONNEL FILE
-        </button>
+<button
+id="adminBtn"
+class="btn red hidden"
+onclick="userTab('admin')">
+ADMIN COMMAND
+</button>
 
-        <button
-            id="adminBtn"
-            class="btn red hidden"
-            onclick="userTab('admin')">
-            ADMIN COMMAND
-        </button>
+<button class="btn" onclick="logout()">
+LOGOUT
+</button>
 
-        <button
-            class="btn"
-            onclick="logout()">
-            LOGOUT
-        </button>
+</div>
 
-    </div>
+<div id="userContent"></div>
+
+</div>
 
 
-    <div id="userContent"></div>
+<!-- =====================================================
+     ALPHA LOG PAGE
+===================================================== -->
+
+<div id="alphaPage" class="alphaPage hidden">
+
+<div class="alphaHeader">
+
+<div>
+
+<div class="alphaTitle">
+ALPHA // LOG TERMINAL
+</div>
+
+<div class="alphaSubtitle">
+RESTRICTED AUDIT ACCESS // CODE ALPHA
+</div>
+
+</div>
+
+<div class="alphaStatus">
+
+<div class="statusDot"></div>
+
+<span class="tag red">
+ALPHA ONLY
+</span>
+
+<button class="btn small" onclick="loadAlphaLogs()">
+REFRESH
+</button>
+
+<button class="btn small" onclick="logout()">
+LOGOUT
+</button>
+
+</div>
+
+</div>
+
+
+<div class="alphaTools">
+
+<div class="alphaOnly">
+ACCESS LEVEL: ALPHA // AUDIT RECORDS
+</div>
+
+<input
+id="logSearch"
+class="input alphaSearch"
+placeholder="SEARCH LOGS..."
+oninput="filterLogs()">
+
+</div>
+
+
+<div class="panel">
+
+<div id="alphaLogStatus" class="muted mono">
+CONNECTING TO LOG SERVER...
+</div>
+
+<div class="logScroll">
+
+<table class="logTable">
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>TIME</th>
+<th>ACTOR</th>
+<th>ACTION</th>
+<th>IP</th>
+<th>DETAILS</th>
+</tr>
+
+</thead>
+
+<tbody id="alphaLogs"></tbody>
+
+</table>
+
+</div>
+
+</div>
 
 </div>
 
@@ -808,148 +826,96 @@ h1{
      PDF MODAL
 ===================================================== -->
 
-<div
-    id="pdfModal"
-    class="modal hidden">
+<div id="pdfModal" class="modal hidden">
 
-    <div class="modalbox">
+<div class="modalbox">
 
-        <div class="modalhead">
+<div class="modalhead">
 
-            <span
-                class="mono"
-                data-i18n="PDF_VIEWER">
-                CLASSIFIED PDF VIEWER
-            </span>
+<span class="mono">
+CLASSIFIED PDF VIEWER
+</span>
 
-            <button
-                class="btn small"
-                onclick="closePdf()"
-                data-i18n="CLOSE">
-                CLOSE
-            </button>
+<button class="btn small" onclick="closePdf()">
+CLOSE
+</button>
 
-        </div>
+</div>
 
-        <iframe
-            id="pdfFrame">
-        </iframe>
+<iframe id="pdfFrame"></iframe>
 
-    </div>
+</div>
 
 </div>
 
 
 <div id="toast" class="toast"></div>
 
+</div>
+
 
 <script>
 
-const $ = id =>
-    document.getElementById(id);
+const $ = id => document.getElementById(id);
 
 let me = null;
 let udata = null;
 let appdata = null;
-
-
-/* =====================================================
-   NORMAL ADMIN RANKS
-===================================================== */
+let alphaLogs = [];
 
 const adminRanks = [
-    'AGENT OFFICER',
-    'COMMAND OF CIA'
+"AGENT OFFICER",
+"COMMAND OF CIA"
 ];
 
-
-/* =====================================================
-   ALPHA LOG ACCOUNT
-===================================================== */
-
-const ALPHA_USERNAME = 'log';
-const ALPHA_RANK = 'ALPHA';
+const ALPHA_USERNAME = "log";
+const ALPHA_RANK = "ALPHA";
 
 
 /* =====================================================
-   ESCAPE HTML
+   HELPERS
 ===================================================== */
 
 function esc(v){
 
-    return String(v ?? '')
-        .replace(
-            /[&<>"']/g,
-            m => ({
-                '&':'&amp;',
-                '<':'&lt;',
-                '>':'&gt;',
-                '"':'&quot;',
-                "'":'&#39;'
-            }[m])
-        );
+return String(v ?? "")
+.replace(/[&<>"']/g,m=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#39;"
+}[m]));
 
 }
 
-
-/* =====================================================
-   TOAST
-===================================================== */
 
 function toast(t){
 
-    $('toast').textContent = t;
+$("toast").textContent = t;
 
-    $('toast').classList.add('show');
+$("toast").classList.add("show");
 
-    setTimeout(
-        () =>
-            $('toast')
-                .classList
-                .remove('show'),
-        3000
-    );
+setTimeout(()=>{
+$("toast").classList.remove("show");
+},3000);
 
 }
 
-
-/* =====================================================
-   HOME
-===================================================== */
 
 function base(){
 
-    [
-        'home',
-        'auth',
-        'appDash',
-        'userDash'
-    ]
-    .forEach(
-        x =>
-            $(x)
-                .classList
-                .add('hidden')
-    );
+[
+"home",
+"auth",
+"appDash",
+"userDash",
+"alphaPage"
+].forEach(x=>$(x).classList.add("hidden"));
 
-    $('topActions')
-        .classList
-        .remove('hidden');
+$("topActions").classList.remove("hidden");
 
-    $('home')
-        .classList
-        .remove('hidden');
-
-}
-
-
-/* =====================================================
-   BACK HOME
-===================================================== */
-
-function backHome(){
-
-    location.reload();
+$("home").classList.remove("hidden");
 
 }
 
@@ -960,229 +926,65 @@ function backHome(){
 
 function loginPage(){
 
-    $('home')
-        .classList
-        .add('hidden');
+$("home").classList.add("hidden");
+$("appDash").classList.add("hidden");
+$("userDash").classList.add("hidden");
+$("alphaPage").classList.add("hidden");
 
-    $('appDash')
-        .classList
-        .add('hidden');
+$("auth").classList.remove("hidden");
 
-    $('userDash')
-        .classList
-        .add('hidden');
-
-    $('auth')
-        .classList
-        .remove('hidden');
-
-    $('authTitle').textContent =
-        lang === 'ar'
-            ? 'تسجيل دخول الأفراد'
-            : 'SECURE PERSONNEL LOGIN';
-
-    $('authBody').innerHTML = `
-
-        <div class="field">
-
-            <label>
-                USERNAME
-            </label>
-
-            <input
-                id="lu"
-                class="input"
-                autocomplete="username">
-
-        </div>
+$("authTitle").textContent =
+lang === "ar"
+? "تسجيل دخول الأفراد"
+: "SECURE PERSONNEL LOGIN";
 
 
-        <div class="field">
+$("authBody").innerHTML = `
 
-            <label>
-                PASSWORD
-            </label>
+<div class="field">
 
-            <input
-                id="lp"
-                type="password"
-                class="input"
-                autocomplete="current-password">
+<label>USERNAME</label>
 
-        </div>
+<input
+id="lu"
+class="input"
+autocomplete="username">
+
+</div>
 
 
-        <button
-            class="btn red"
-            onclick="login()">
-            AUTHENTICATE
-        </button>
+<div class="field">
 
-        <button
-            class="btn"
-            onclick="base()">
-            BACK
-        </button>
+<label>PASSWORD</label>
 
-    `;
+<input
+id="lp"
+type="password"
+class="input"
+autocomplete="current-password">
 
-    $('lp')
-        .addEventListener(
-            'keydown',
-            e => {
+</div>
 
-                if(e.key === 'Enter'){
-                    login();
-                }
 
-            }
-        );
+<button class="btn red" onclick="login()">
+AUTHENTICATE
+</button>
 
-    $('lu').focus();
+<button class="btn" onclick="base()">
+BACK
+</button>
 
+`;
+
+
+$("lp").addEventListener(
+"keydown",
+e=>{
+if(e.key==="Enter") login();
 }
+);
 
-
-/* =====================================================
-   APPLICATION PAGE
-===================================================== */
-
-function applyPage(){
-
-    $('home')
-        .classList
-        .add('hidden');
-
-    $('auth')
-        .classList
-        .remove('hidden');
-
-    $('authTitle').textContent =
-        'CIA APPLICATION // ENGLISH NAME';
-
-    $('authBody').innerHTML = `
-
-        <div class="notice">
-
-            Use your exact in-game name in English.
-
-            After submission, this browser receives
-            a private application dashboard.
-
-            Do not clear its site data if you want
-            automatic return.
-
-        </div>
-
-
-        <div class="cols">
-
-            <div class="field">
-
-                <label>
-                    IN-GAME NAME (ENGLISH)
-                </label>
-
-                <input
-                    id="an"
-                    class="input"
-                    placeholder="John Carter">
-
-            </div>
-
-
-            <div class="field">
-
-                <label>
-                    AGE
-                </label>
-
-                <input
-                    id="aa"
-                    type="number"
-                    class="input">
-
-            </div>
-
-
-            <div class="field">
-
-                <label>
-                    REQUESTED UNIT
-                </label>
-
-                <select
-                    id="au"
-                    class="input">
-
-                    <option>
-                        Intelligence Operations
-                    </option>
-
-                    <option>
-                        Field Operations
-                    </option>
-
-                    <option>
-                        Cyber Intelligence
-                    </option>
-
-                    <option>
-                        Internal Affairs
-                    </option>
-
-                    <option>
-                        Protective Operations
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="field">
-
-                <label>
-                    EXPERIENCE
-                </label>
-
-                <input
-                    id="ae"
-                    class="input">
-
-            </div>
-
-        </div>
-
-
-        <div class="field">
-
-            <label>
-                WHY SHOULD CIA ACCEPT YOU?
-            </label>
-
-            <textarea
-                id="aw"
-                class="input"
-                rows="5">
-            </textarea>
-
-        </div>
-
-
-        <button
-            class="btn red"
-            onclick="apply()">
-            SUBMIT APPLICATION
-        </button>
-
-        <button
-            class="btn"
-            onclick="base()">
-            BACK
-        </button>
-
-    `;
+$("lu").focus();
 
 }
 
@@ -1191,82 +993,180 @@ function applyPage(){
    APPLY
 ===================================================== */
 
+function applyPage(){
+
+$("home").classList.add("hidden");
+$("auth").classList.remove("hidden");
+
+$("authTitle").textContent =
+"CIA APPLICATION // ENGLISH NAME";
+
+
+$("authBody").innerHTML = `
+
+<div class="notice">
+Use your exact in-game name in English.
+After submission, this browser receives a private
+application dashboard.
+</div>
+
+
+<div class="cols">
+
+<div class="field">
+
+<label>IN-GAME NAME (ENGLISH)</label>
+
+<input
+id="an"
+class="input"
+placeholder="John Carter">
+
+</div>
+
+
+<div class="field">
+
+<label>AGE</label>
+
+<input
+id="aa"
+type="number"
+class="input">
+
+</div>
+
+
+<div class="field">
+
+<label>REQUESTED UNIT</label>
+
+<select id="au" class="input">
+
+<option>Intelligence Operations</option>
+<option>Field Operations</option>
+<option>Cyber Intelligence</option>
+<option>Internal Affairs</option>
+<option>Protective Operations</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>EXPERIENCE</label>
+
+<input id="ae" class="input">
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label>WHY SHOULD CIA ACCEPT YOU?</label>
+
+<textarea
+id="aw"
+class="input"
+rows="5"></textarea>
+
+</div>
+
+
+<button class="btn red" onclick="apply()">
+SUBMIT APPLICATION
+</button>
+
+<button class="btn" onclick="base()">
+BACK
+</button>
+
+`;
+
+}
+
+
+/* =====================================================
+   APPLICATION SUBMIT
+===================================================== */
+
 async function apply(){
 
-    let b = {
+let b = {
 
-        name:$('an').value.trim(),
+name:$("an").value.trim(),
+age:$("aa").value,
+unit:$("au").value,
+experience:$("ae").value.trim(),
+why:$("aw").value.trim()
 
-        age:$('aa').value,
-
-        unit:$('au').value,
-
-        experience:$('ae').value.trim(),
-
-        why:$('aw').value.trim()
-
-    };
+};
 
 
-    if(
-        !b.name ||
-        !b.age ||
-        !b.experience ||
-        !b.why
-    ){
+if(
+!b.name ||
+!b.age ||
+!b.experience ||
+!b.why
+){
 
-        return toast(
-            'Complete every field.'
-        );
+return toast(
+"Complete every field."
+);
 
-    }
-
-
-    let r =
-        await fetch(
-            '/api/applications',
-            {
-                method:'POST',
-
-                headers:{
-                    'Content-Type':
-                        'application/json'
-                },
-
-                body:
-                    JSON.stringify(b)
-            }
-        );
+}
 
 
-    let j =
-        await r.json();
+try{
+
+let r = await fetch(
+"/api/applications",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(b)
+}
+);
+
+let j = await r.json();
+
+if(!r.ok){
+
+return toast(
+"Application could not be saved."
+);
+
+}
 
 
-    if(!r.ok){
-
-        return toast(
-            'Application could not be saved.'
-        );
-
-    }
+document.cookie =
+"cia_application="+
+encodeURIComponent(j.token)+
+"; max-age=31536000; path=/; samesite=lax";
 
 
-    document.cookie =
-        'cia_application=' +
-        encodeURIComponent(j.token) +
-        '; max-age=31536000; path=/; samesite=lax';
+toast(
+"Application registered."
+);
 
+setTimeout(
+loadApplication,
+500
+);
 
-    toast(
-        'Application registered. Opening dashboard...'
-    );
+}catch{
 
+toast(
+"Server connection failed."
+);
 
-    setTimeout(
-        loadApplication,
-        500
-    );
+}
 
 }
 
@@ -1277,73 +1177,52 @@ async function apply(){
 
 async function loadApplication(){
 
-    let r =
-        await fetch(
-            '/api/application/me'
-        );
+let r =
+await fetch("/api/application/me");
 
-    let j =
-        await r.json();
+let j =
+await r.json();
 
+if(!j.application){
 
-    if(!j.application){
+return base();
 
-        return base();
+}
 
-    }
+appdata = j;
 
+$("auth").classList.add("hidden");
+$("home").classList.add("hidden");
+$("userDash").classList.add("hidden");
+$("alphaPage").classList.add("hidden");
 
-    appdata = j;
+$("appDash").classList.remove("hidden");
 
+$("topActions").classList.add("hidden");
 
-    $('auth')
-        .classList
-        .add('hidden');
+$("appNameTitle").textContent =
+j.application.name;
 
-    $('home')
-        .classList
-        .add('hidden');
+$("appStatus").innerHTML =
+`<span class="tag ${
+j.application.status==="APPROVED"
+?"green":
+j.application.status==="REJECTED"
+?"red":
+"amber"
+}">
+${esc(j.application.status)}
+</span>`;
 
-    $('appDash')
-        .classList
-        .remove('hidden');
+$("appMeta").textContent =
+"Application #"+
+j.application.id+
+" // "+
+j.application.unit+
+" // submitted "+
+j.application.created_at;
 
-    $('topActions')
-        .classList
-        .add('hidden');
-
-
-    $('appNameTitle')
-        .textContent =
-        j.application.name;
-
-
-    $('appStatus')
-        .innerHTML =
-        '<span class="tag ' +
-        (
-            j.application.status === 'APPROVED'
-                ? 'green'
-                : j.application.status === 'REJECTED'
-                    ? 'red'
-                    : 'amber'
-        ) +
-        '">' +
-        esc(j.application.status) +
-        '</span>';
-
-
-    $('appMeta')
-        .textContent =
-        'Application #' +
-        j.application.id +
-        ' // ' +
-        j.application.unit +
-        ' // submitted ' +
-        j.application.created_at;
-
-
-    appTab('messages');
+appTab("messages");
 
 }
 
@@ -1354,138 +1233,116 @@ async function loadApplication(){
 
 function appTab(t){
 
-    if(t === 'messages'){
+if(t==="messages"){
 
-        let a =
-            appdata.messages || [];
+let a =
+appdata.messages || [];
 
+$("appContent").innerHTML = `
 
-        $('appContent')
-            .innerHTML =
+<div class="panel">
 
-            '<div class="panel">' +
+<h2>MESSAGES</h2>
 
-            '<h2>MESSAGES</h2>' +
+${
+a.length
+?
+a.map(m=>`
 
-            (
-                a.length
+<div class="card message ${
+!m.read ? "unread" : ""
+}">
 
-                    ?
+<b>${esc(m.subject)}</b>
 
-                a.map(
-                    m =>
+<div class="muted mono">
+${esc(m.sender_label)}
+// ${esc(m.created_at)}
+</div>
 
-                    '<div class="card message ' +
-                    (!m.read ? 'unread' : '') +
-                    '">' +
+<p>${esc(m.body)}</p>
 
-                    '<b>' +
-                    esc(m.subject) +
-                    '</b>' +
+</div>
 
-                    '<div class="muted mono">' +
-                    esc(m.sender_label) +
-                    ' // ' +
-                    esc(m.created_at) +
-                    '</div>' +
+`).join("")
+:
+'<div class="empty">No messages yet.</div>'
+}
 
-                    '<p>' +
-                    esc(m.body) +
-                    '</p>' +
+</div>
 
-                    '</div>'
+`;
 
-                ).join('')
+}else{
 
-                    :
+$("appContent").innerHTML = `
 
-                '<div class="empty">' +
-                'No messages yet.' +
-                '</div>'
-            ) +
+<div class="panel">
 
-            '</div>';
+<h2>APPLICATION FILE</h2>
 
-    }
+<table class="table">
 
-    else{
+<tr>
+<th>IN-GAME NAME</th>
+<td>${esc(appdata.application.name)}</td>
+</tr>
 
-        $('appContent')
-            .innerHTML =
+<tr>
+<th>UNIT</th>
+<td>${esc(appdata.application.unit)}</td>
+</tr>
 
-            '<div class="panel">' +
+<tr>
+<th>STATUS</th>
+<td>${esc(appdata.application.status)}</td>
+</tr>
 
-            '<h2>APPLICATION FILE</h2>' +
+<tr>
+<th>EXPERIENCE</th>
+<td>${esc(appdata.application.experience)}</td>
+</tr>
 
-            '<table class="table">' +
+<tr>
+<th>WHY CIA</th>
+<td>${esc(appdata.application.why)}</td>
+</tr>
 
-            '<tr>' +
-            '<th>IN-GAME NAME</th>' +
-            '<td>' +
-            esc(appdata.application.name) +
-            '</td>' +
-            '</tr>' +
+</table>
 
-            '<tr>' +
-            '<th>UNIT</th>' +
-            '<td>' +
-            esc(appdata.application.unit) +
-            '</td>' +
-            '</tr>' +
+${
+appdata.credentials
+?
+`
+<div class="notice" style="margin-top:14px">
 
-            '<tr>' +
-            '<th>STATUS</th>' +
-            '<td>' +
-            esc(appdata.application.status) +
-            '</td>' +
-            '</tr>' +
+ACCOUNT ISSUED
 
-            '<tr>' +
-            '<th>EXPERIENCE</th>' +
-            '<td>' +
-            esc(appdata.application.experience) +
-            '</td>' +
-            '</tr>' +
+<br><br>
 
-            '<tr>' +
-            '<th>WHY CIA</th>' +
-            '<td>' +
-            esc(appdata.application.why) +
-            '</td>' +
-            '</tr>' +
+USERNAME:
+<b>${esc(appdata.credentials.username)}</b>
 
-            '</table>' +
+<br>
 
-            (
-                appdata.credentials
+RANK:
+${esc(appdata.credentials.rank)}
 
-                ?
+<br>
 
-                '<div class="notice" style="margin-top:14px">' +
+UNIT:
+${esc(appdata.credentials.unit)}
 
-                'ACCOUNT ISSUED<br><br>' +
+</div>
+`
+:""
+}
 
-                'USERNAME: <b>' +
-                esc(appdata.credentials.username) +
-                '</b><br>' +
+</div>
 
-                'RANK: ' +
-                esc(appdata.credentials.rank) +
-                '<br>' +
+`;
 
-                'UNIT: ' +
-                esc(appdata.credentials.unit) +
-
-                '</div>'
-
-                :
-
-                ''
-            ) +
-
-            '</div>';
-
-    }
+}
 
 }
 
@@ -1496,334 +1353,110 @@ function appTab(t){
 
 async function login(){
 
-    if(location.protocol === 'file:'){
+if(location.protocol==="file:"){
 
-        return toast(
-            'Run the Node server with npm start, then open http://SERVER-IP:3000.'
-        );
+return toast(
+"Run the Node server with npm start."
+);
 
-    }
-
-
-    try{
-
-        let r =
-            await fetch(
-                '/api/login',
-                {
-                    method:'POST',
-
-                    headers:{
-                        'Content-Type':
-                            'application/json'
-                    },
-
-                    credentials:
-                        'same-origin',
-
-                    body:
-                        JSON.stringify({
-                            username:
-                                $('lu')
-                                .value
-                                .trim(),
-
-                            password:
-                                $('lp')
-                                .value
-                        })
-                }
-            );
+}
 
 
-        let j =
-            await r.json();
+let username =
+$("lu").value.trim();
+
+let password =
+$("lp").value;
 
 
-        if(!r.ok){
+try{
 
-            return toast(
-                j.error ===
-                'INVALID_CREDENTIALS'
-
-                    ?
-
-                'Invalid username or password.'
-
-                    :
-
-                'Login failed.'
-            );
-
-        }
-
-
-        me = j.user;
-
-        enterUser();
+let r =
+await fetch(
+"/api/login",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+credentials:"same-origin",
+body:JSON.stringify({
+username,
+password
+})
+}
+);
 
 
-    }catch(e){
+let j =
+await r.json();
 
-        console.error(e);
 
-        toast(
-            'Server connection failed.'
-        );
+if(!r.ok){
 
-    }
+return toast(
+j.error==="INVALID_CREDENTIALS"
+?
+"Invalid username or password."
+:
+"Login failed."
+);
+
+}
+
+
+me = j.user;
+
+
+/*
+ * أهم جزء:
+ * حساب log لا يدخل Dashboard العادي.
+ */
+
+if(
+me.username === ALPHA_USERNAME &&
+me.rank === ALPHA_RANK
+){
+
+enterAlpha();
+
+return;
+
+}
+
+
+enterUser();
+
+
+}catch(e){
+
+console.error(e);
+
+toast(
+"LOG SERVER CONNECTION ERROR"
+);
+
+}
 
 }
 
 
 /* =====================================================
-   ENTER USER
+   ALPHA PAGE
 ===================================================== */
 
-function enterUser(){
+function enterAlpha(){
 
-    $('auth')
-        .classList
-        .add('hidden');
+$("auth").classList.add("hidden");
+$("home").classList.add("hidden");
+$("appDash").classList.add("hidden");
+$("userDash").classList.add("hidden");
 
-    $('home')
-        .classList
-        .add('hidden');
+$("alphaPage").classList.remove("hidden");
 
-    $('appDash')
-        .classList
-        .add('hidden');
+$("topActions").classList.add("hidden");
 
-    $('topActions')
-        .classList
-        .add('hidden');
-
-
-    /*
-     * ==============================================
-     * ALPHA LOG ACCOUNT
-     *
-     * Username: log
-     *
-     * The ALPHA account NEVER enters the normal
-     * personnel dashboard.
-     * ==============================================
-     */
-
-    if(
-        me.username === ALPHA_USERNAME ||
-        me.rank === ALPHA_RANK
-    ){
-
-        enterLogDashboard();
-
-        return;
-
-    }
-
-
-    /*
-     * ==============================================
-     * NORMAL PERSONNEL
-     * ==============================================
-     */
-
-    $('userDash')
-        .classList
-        .remove('hidden');
-
-
-    $('welcome')
-        .textContent =
-        'WELCOME, ' +
-        me.username.toUpperCase();
-
-
-    $('profile')
-        .innerHTML =
-
-        '<span class="tag">' +
-        'RANK: ' +
-        esc(me.rank) +
-        '</span>' +
-
-        '<span class="tag">' +
-        'UNIT: ' +
-        esc(me.unit) +
-        '</span>' +
-
-        '<span class="tag red">' +
-        'CLEARANCE: ' +
-        esc(me.clearance) +
-        '</span>';
-
-
-    if(
-        adminRanks.includes(me.rank)
-    ){
-
-        $('adminBtn')
-            .classList
-            .remove('hidden');
-
-    }
-
-
-    loadUser();
-
-}
-
-
-/* =====================================================
-   ALPHA LOG DASHBOARD
-===================================================== */
-
-function enterLogDashboard(){
-
-    $('userDash')
-        .classList
-        .remove('hidden');
-
-
-    /*
-     * Hide every normal personnel control.
-     */
-
-    $('welcome')
-        .textContent =
-        'ALPHA // AUDIT CONTROL';
-
-
-    $('profile')
-        .innerHTML =
-
-        '<span class="alpha-badge">' +
-        'ALPHA' +
-        '</span>' +
-
-        '<span class="tag">' +
-        'LOG ACCESS' +
-        '</span>' +
-
-        '<span class="tag red">' +
-        'RESTRICTED' +
-        '</span>';
-
-
-    /*
-     * Replace the normal dashboard tabs
-     * with ONLY the log controls.
-     */
-
-    const tabs =
-        document.querySelector(
-            '#userDash .tabs'
-        );
-
-
-    tabs.innerHTML = `
-
-        <button
-            class="btn red"
-            onclick="alphaTab()">
-            AUDIT LOG
-        </button>
-
-        <button
-            class="btn"
-            onclick="logout()">
-            LOGOUT
-        </button>
-
-    `;
-
-
-    /*
-     * Directly open logs.
-     */
-
-    alphaTab();
-
-}
-
-
-/* =====================================================
-   ALPHA LOG TAB
-===================================================== */
-
-function alphaTab(){
-
-    $('userContent')
-        .innerHTML = `
-
-        <div class="hero">
-
-            <div class="kicker">
-                ALPHA // RESTRICTED SYSTEM
-            </div>
-
-            <div class="alpha-header">
-
-                <div class="alpha-title">
-
-                    <h1 style="margin:0">
-                        AUDIT LOG
-                    </h1>
-
-                    <span class="alpha-badge">
-                        ALPHA ONLY
-                    </span>
-
-                </div>
-
-                <button
-                    class="btn red"
-                    onclick="loadAlphaLogs()">
-                    REFRESH
-                </button>
-
-            </div>
-
-            <div class="alpha-status">
-
-                <span class="tag">
-                    ACCOUNT: ${esc(me.username)}
-                </span>
-
-                <span class="tag">
-                    RANK: ${esc(me.rank)}
-                </span>
-
-                <span class="tag red">
-                    RESTRICTED ACCESS
-                </span>
-
-            </div>
-
-            <p>
-                Central audit records restricted to
-                authorized ALPHA personnel.
-            </p>
-
-        </div>
-
-
-        <div id="alphaLogContent">
-
-            <div class="panel">
-
-                <div class="empty">
-                    Loading audit records...
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    loadAlphaLogs();
+loadAlphaLogs();
 
 }
 
@@ -1834,219 +1467,221 @@ function alphaTab(){
 
 async function loadAlphaLogs(){
 
-    const box =
-        $('alphaLogContent');
+$("alphaLogStatus").textContent =
+"CONNECTING TO LOG SERVER...";
 
 
-    if(!box){
-        return;
-    }
+$("alphaLogs").innerHTML = "";
 
 
-    box.innerHTML = `
+try{
 
-        <div class="panel">
+const response =
+await fetch(
+"/api/alpha/logs",
+{
+credentials:"same-origin",
+cache:"no-store"
+}
+);
 
-            <div class="empty">
-                Loading audit records...
-            </div>
 
-        </div>
+if(!response.ok){
 
-    `;
+if(response.status===403){
 
+toast(
+"ALPHA ACCESS REQUIRED"
+);
 
-    try{
+return logout();
 
-        const r =
-            await fetch(
-                '/api/command/audit',
-                {
-                    credentials:
-                        'same-origin'
-                }
-            );
+}
 
+throw new Error(
+"HTTP "+response.status
+);
 
-        const j =
-            await r.json();
+}
 
 
-        /*
-         * Server rejected the account.
-         */
+const data =
+await response.json();
 
-        if(!r.ok){
 
-            box.innerHTML = `
+if(!data.ok){
 
-                <div class="panel">
+throw new Error(
+"LOG_ENDPOINT_FAILED"
+);
 
-                    <div class="notice">
+}
 
-                        ACCESS DENIED
 
-                    </div>
+alphaLogs =
+Array.isArray(data.logs)
+?
+data.logs
+:
+[];
 
-                </div>
 
-            `;
+renderAlphaLogs(alphaLogs);
 
-            return;
 
-        }
+$("alphaLogStatus").textContent =
+"LOG SERVER ONLINE // "+
+alphaLogs.length+
+" RECORDS LOADED";
 
 
-        const logs =
-            j.logs || [];
+}catch(error){
 
+console.error(
+"ALPHA LOG ERROR:",
+error
+);
 
-        if(!logs.length){
+$("alphaLogStatus").innerHTML =
+`<span class="danger">
+LOG SERVER CONNECTION ERROR
+</span>`;
 
-            box.innerHTML = `
+toast(
+"LOG SERVER CONNECTION ERROR"
+);
 
-                <div class="panel">
+}
 
-                    <div class="empty">
+}
 
-                        No audit logs available.
 
-                    </div>
+/* =====================================================
+   RENDER LOGS
+===================================================== */
 
-                </div>
+function renderAlphaLogs(logs){
 
-            `;
+if(!logs.length){
 
-            return;
+$("alphaLogs").innerHTML = `
 
-        }
+<tr>
 
+<td colspan="6">
 
-        box.innerHTML = `
+<div class="empty">
+NO AUDIT RECORDS FOUND.
+</div>
 
-            <div class="panel">
+</td>
 
-                <div class="alpha-header">
+</tr>
 
-                    <div>
+`;
 
-                        <h2>
-                            AUDIT LOG
-                        </h2>
+return;
 
-                        <div class="muted">
-                            Restricted system records
-                        </div>
+}
 
-                    </div>
 
-                    <span class="alpha-badge">
-                        ${logs.length} RECORDS
-                    </span>
+$("alphaLogs").innerHTML = logs.map(x=>`
 
-                </div>
+<tr>
 
+<td class="logId">
+#${esc(x.id)}
+</td>
 
-                <br>
+<td>
+${esc(x.created_at)}
+</td>
 
+<td class="logActor">
+${esc(x.actor_label)}
+</td>
 
-                <div class="log-scroll">
+<td class="logAction">
+${esc(x.action)}
+</td>
 
-                    <table class="log-table">
+<td class="logIp">
+${esc(x.ip)}
+</td>
 
-                        <tr>
+<td class="logDetails">
+${esc(x.details)}
+</td>
 
-                            <th>
-                                ID
-                            </th>
+</tr>
 
-                            <th>
-                                TIME
-                            </th>
+`).join("");
 
-                            <th>
-                                ACTOR
-                            </th>
+}
 
-                            <th>
-                                ACTION
-                            </th>
 
-                            <th>
-                                IP
-                            </th>
+/* =====================================================
+   SEARCH LOGS
+===================================================== */
 
-                            <th>
-                                DETAILS
-                            </th>
+function filterLogs(){
 
-                        </tr>
+const q =
+$("logSearch").value
+.toLowerCase()
+.trim();
 
 
-                        ${logs.map(x => `
+if(!q){
 
-                            <tr>
+renderAlphaLogs(alphaLogs);
 
-                                <td class="mono">
-                                    #${esc(x.id)}
-                                </td>
+return;
 
-                                <td class="mono">
-                                    ${esc(x.created_at)}
-                                </td>
+}
 
-                                <td>
-                                    ${esc(x.actor_label)}
-                                </td>
 
-                                <td class="log-action">
-                                    ${esc(x.action)}
-                                </td>
+const filtered =
+alphaLogs.filter(x=>
 
-                                <td class="log-ip">
-                                    ${esc(x.ip)}
-                                </td>
+String(x.id)
+.toLowerCase()
+.includes(q)
 
-                                <td class="log-details">
-                                    ${esc(x.details)}
-                                </td>
+||
 
-                            </tr>
+String(x.created_at)
+.toLowerCase()
+.includes(q)
 
-                        `).join('')}
+||
 
-                    </table>
+String(x.actor_label)
+.toLowerCase()
+.includes(q)
 
-                </div>
+||
 
-            </div>
+String(x.action)
+.toLowerCase()
+.includes(q)
 
-        `;
+||
 
+String(x.ip)
+.toLowerCase()
+.includes(q)
 
-    }catch(error){
+||
 
-        console.error(
-            'ALPHA LOG ERROR:',
-            error
-        );
+String(x.details)
+.toLowerCase()
+.includes(q)
 
+);
 
-        box.innerHTML = `
 
-            <div class="panel">
-
-                <div class="notice">
-
-                    LOG SERVER CONNECTION ERROR
-
-                </div>
-
-            </div>
-
-        `;
-
-    }
+renderAlphaLogs(filtered);
 
 }
 
@@ -2055,26 +1690,88 @@ async function loadAlphaLogs(){
    NORMAL USER
 ===================================================== */
 
+function enterUser(){
+
+$("auth").classList.add("hidden");
+$("home").classList.add("hidden");
+$("appDash").classList.add("hidden");
+$("alphaPage").classList.add("hidden");
+
+$("userDash").classList.remove("hidden");
+
+$("topActions").classList.add("hidden");
+
+$("welcome").textContent =
+"WELCOME, "+
+me.username.toUpperCase();
+
+
+$("profile").innerHTML = `
+
+<span class="tag">
+RANK: ${esc(me.rank)}
+</span>
+
+<span class="tag">
+UNIT: ${esc(me.unit)}
+</span>
+
+<span class="tag red">
+CLEARANCE: ${esc(me.clearance)}
+</span>
+
+`;
+
+
+if(adminRanks.includes(me.rank)){
+
+$("adminBtn")
+.classList.remove("hidden");
+
+}
+
+
+loadUser();
+
+}
+
+
+/* =====================================================
+   LOAD USER
+===================================================== */
+
 async function loadUser(){
 
-    let r =
-        await fetch(
-            '/api/dashboard'
-        );
+try{
+
+let r =
+await fetch(
+"/api/dashboard",
+{
+credentials:"same-origin"
+}
+);
 
 
-    if(!r.ok){
+if(!r.ok){
 
-        return location.reload();
+return location.reload();
 
-    }
-
-
-    udata =
-        await r.json();
+}
 
 
-    userTab('messages');
+udata =
+await r.json();
+
+userTab("messages");
+
+}catch{
+
+toast(
+"Server connection failed."
+);
+
+}
 
 }
 
@@ -2085,35 +1782,20 @@ async function loadUser(){
 
 function userTab(t){
 
-    if(
-        me &&
-        (
-            me.username === ALPHA_USERNAME ||
-            me.rank === ALPHA_RANK
-        )
-    ){
+if(t==="messages")
+renderMessages();
 
-        alphaTab();
+if(t==="reports")
+renderReports();
 
-        return;
+if(t==="sector")
+renderSector();
 
-    }
+if(t==="profile")
+renderProfile();
 
-
-    if(t === 'messages')
-        renderMessages();
-
-    if(t === 'reports')
-        renderReports();
-
-    if(t === 'sector')
-        renderSector();
-
-    if(t === 'profile')
-        renderProfile();
-
-    if(t === 'admin')
-        renderAdmin();
+if(t==="admin")
+renderAdmin();
 
 }
 
@@ -2124,62 +1806,49 @@ function userTab(t){
 
 function renderMessages(){
 
-    let a =
-        udata.messages || [];
+let a =
+udata.messages || [];
 
+$("userContent").innerHTML = `
 
-    $('userContent')
-        .innerHTML =
+<div class="panel">
 
-        '<div class="panel">' +
+<h2>
+MESSAGES
+<span class="tag green">
+${a.length}
+</span>
+</h2>
 
-        '<h2>' +
-        'MESSAGES ' +
-        '<span class="tag green">' +
-        a.length +
-        '</span>' +
-        '</h2>' +
+${
+a.length
+?
+a.map(m=>`
 
-        (
-            a.length
+<div class="card message ${
+!m.read ? "unread" : ""
+}">
 
-            ?
+<b>${esc(m.subject)}</b>
 
-            a.map(
-                m =>
+<div class="muted mono">
+${esc(m.sender_label)}
+// ${esc(m.created_at)}
+// ${esc(m.type)}
+</div>
 
-                '<div class="card message ' +
-                (!m.read ? 'unread' : '') +
-                '">' +
+<p>${esc(m.body)}</p>
 
-                '<b>' +
-                esc(m.subject) +
-                '</b>' +
+</div>
 
-                '<div class="muted mono">' +
-                esc(m.sender_label) +
-                ' // ' +
-                esc(m.created_at) +
-                ' // ' +
-                esc(m.type) +
-                '</div>' +
+`).join("")
+:
+'<div class="empty">No messages.</div>'
+}
 
-                '<p>' +
-                esc(m.body) +
-                '</p>' +
+</div>
 
-                '</div>'
-
-            ).join('')
-
-            :
-
-            '<div class="empty">' +
-            'No messages.' +
-            '</div>'
-        ) +
-
-        '</div>';
+`;
 
 }
 
@@ -2190,92 +1859,82 @@ function renderMessages(){
 
 function renderReports(){
 
-    let a =
-        udata.reports || [];
+let a =
+udata.reports || [];
 
+$("userContent").innerHTML = `
 
-    $('userContent')
-        .innerHTML =
+<div class="panel">
 
-        '<div class="panel">' +
+<div style="display:flex;justify-content:space-between">
 
-        '<div style="display:flex;justify-content:space-between">' +
+<h2>
+INTELLIGENCE REPORTS
+</h2>
 
-        '<h2>INTELLIGENCE REPORTS</h2>' +
+<span class="tag red">
+AUTHORIZED ONLY
+</span>
 
-        '<span class="tag red">' +
-        'AUTHORIZED ONLY' +
-        '</span>' +
+</div>
 
-        '</div>' +
+${
+a.length
+?
+`
+<table class="table">
 
-        (
-            a.length
+<tr>
+<th>ID</th>
+<th>TITLE</th>
+<th>CLASSIFICATION</th>
+<th>DATE</th>
+<th></th>
+</tr>
 
-            ?
+${a.map(x=>`
 
-            '<table class="table">' +
+<tr>
 
-            '<tr>' +
-            '<th>ID</th>' +
-            '<th>TITLE</th>' +
-            '<th>CLASSIFICATION</th>' +
-            '<th>DATE</th>' +
-            '<th></th>' +
-            '</tr>' +
+<td class="mono">
+IR-${x.id}
+</td>
 
-            a.map(
-                x =>
+<td>
+${esc(x.title)}
+</td>
 
-                '<tr>' +
+<td>
+<span class="tag red">
+${esc(x.classification)}
+</span>
+</td>
 
-                '<td class="mono">' +
-                'IR-' +
-                x.id +
-                '</td>' +
+<td>
+${esc(x.created_at)}
+</td>
 
-                '<td>' +
-                esc(x.title) +
-                '</td>' +
+<td>
+<button
+class="btn small"
+onclick="viewPdf(${x.id})">
+VIEW PDF
+</button>
+</td>
 
-                '<td>' +
-                '<span class="tag red">' +
-                esc(x.classification) +
-                '</span>' +
-                '</td>' +
+</tr>
 
-                '<td>' +
-                esc(x.created_at) +
-                '</td>' +
+`).join("")}
 
-                '<td>' +
+</table>
+`
+:
+'<div class="empty">No reports available for your clearance.</div>'
+}
 
-                '<button ' +
-                'class="btn small" ' +
-                'onclick="viewPdf(' +
-                x.id +
-                ')">' +
+</div>
 
-                'VIEW PDF' +
-
-                '</button>' +
-
-                '</td>' +
-
-                '</tr>'
-
-            ).join('') +
-
-            '</table>'
-
-            :
-
-            '<div class="empty">' +
-            'No reports available for your clearance.' +
-            '</div>'
-        ) +
-
-        '</div>';
+`;
 
 }
 
@@ -2286,76 +1945,67 @@ function renderReports(){
 
 async function renderSector(){
 
-    let r =
-        await fetch(
-            '/api/sector'
-        );
+let r =
+await fetch("/api/sector");
+
+if(!r.ok)
+return toast("Unable to load directory.");
+
+let a =
+await r.json();
 
 
-    if(!r.ok){
+$("userContent").innerHTML = `
 
-        return toast(
-            'Unable to load directory.'
-        );
+<div class="panel">
 
-    }
+<h2>
+SECTOR PERSONNEL DIRECTORY
+</h2>
 
+<table class="table">
 
-    let a =
-        await r.json();
+<tr>
+<th>CODE / USERNAME</th>
+<th>IN-GAME NAME</th>
+<th>RANK</th>
+<th>UNIT</th>
+<th>CLEARANCE</th>
+</tr>
 
+${a.map(x=>`
 
-    $('userContent')
-        .innerHTML =
+<tr>
 
-        '<div class="panel">' +
+<td class="mono">
+${esc(x.username)}
+</td>
 
-        '<h2>' +
-        'SECTOR PERSONNEL DIRECTORY' +
-        '</h2>' +
+<td>
+${esc(x.in_game_name)}
+</td>
 
-        '<table class="table">' +
+<td>
+${esc(x.rank)}
+</td>
 
-        '<tr>' +
-        '<th>CODE / USERNAME</th>' +
-        '<th>IN-GAME NAME</th>' +
-        '<th>RANK</th>' +
-        '<th>UNIT</th>' +
-        '<th>CLEARANCE</th>' +
-        '</tr>' +
+<td>
+${esc(x.unit)}
+</td>
 
-        a.map(
-            x =>
+<td>
+${esc(x.clearance)}
+</td>
 
-            '<tr>' +
+</tr>
 
-            '<td class="mono">' +
-            esc(x.username) +
-            '</td>' +
+`).join("")}
 
-            '<td>' +
-            esc(x.in_game_name) +
-            '</td>' +
+</table>
 
-            '<td>' +
-            esc(x.rank) +
-            '</td>' +
+</div>
 
-            '<td>' +
-            esc(x.unit) +
-            '</td>' +
-
-            '<td>' +
-            esc(x.clearance) +
-            '</td>' +
-
-            '</tr>'
-
-        ).join('') +
-
-        '</table>' +
-
-        '</div>';
+`;
 
 }
 
@@ -2366,51 +2016,63 @@ async function renderSector(){
 
 function renderProfile(){
 
-    $('userContent')
-        .innerHTML =
+$("userContent").innerHTML = `
 
-        '<div class="panel">' +
+<div class="panel">
 
-        '<h2>' +
-        'PERSONNEL FILE' +
-        '</h2>' +
+<h2>
+PERSONNEL FILE
+</h2>
 
-        '<div class="grid">' +
+<div class="grid">
 
-        '<div class="card">' +
-        '<div class="muted">' +
-        'USERNAME / CODE' +
-        '</div>' +
-        '<b>' +
-        esc(me.username) +
-        '</b>' +
-        '</div>' +
+<div class="card">
 
-        '<div class="card">' +
-        '<div class="muted">' +
-        'RANK' +
-        '</div>' +
-        '<b>' +
-        esc(me.rank) +
-        '</b>' +
-        '</div>' +
+<div class="muted">
+USERNAME / CODE
+</div>
 
-        '<div class="card">' +
-        '<div class="muted">' +
-        'UNIT' +
-        '</div>' +
-        '<b>' +
-        esc(me.unit) +
-        '</b>' +
-        '</div>' +
+<b>
+${esc(me.username)}
+</b>
 
-        '</div>' +
+</div>
 
-        '<p class="muted">' +
-        'Server-side permissions are enforced by rank.' +
-        '</p>' +
 
-        '</div>';
+<div class="card">
+
+<div class="muted">
+RANK
+</div>
+
+<b>
+${esc(me.rank)}
+</b>
+
+</div>
+
+
+<div class="card">
+
+<div class="muted">
+UNIT
+</div>
+
+<b>
+${esc(me.unit)}
+</b>
+
+</div>
+
+</div>
+
+<p class="muted">
+Server-side permissions are enforced by rank.
+</p>
+
+</div>
+
+`;
 
 }
 
@@ -2421,371 +2083,408 @@ function renderProfile(){
 
 async function renderAdmin(){
 
-    /*
-     * ALPHA CAN NEVER OPEN NORMAL ADMIN
-     */
+let [
+ra,
+ru
+] = await Promise.all([
 
-    if(
-        me.username === ALPHA_USERNAME ||
-        me.rank === ALPHA_RANK
-    ){
+fetch("/api/admin/applications"),
+fetch("/api/admin/users")
 
-        return alphaTab();
+]);
 
-    }
 
+if(!ra.ok || !ru.ok){
 
-    let [
-        ra,
-        ru
-    ] =
-        await Promise.all([
-            fetch('/api/admin/applications'),
-            fetch('/api/admin/users')
-        ]);
+return toast(
+"Not authorized."
+);
 
+}
 
-    if(
-        !ra.ok ||
-        !ru.ok
-    ){
 
-        return toast(
-            'Not authorized.'
-        );
+let apps =
+await ra.json();
 
-    }
+let users =
+await ru.json();
 
 
-    let apps =
-        await ra.json();
+let h = `
 
-    let users =
-        await ru.json();
+<div class="panel">
 
+<h2>
+APPLICATION CONTROL
+</h2>
 
-    let h =
+${
+apps.length
+?
+`
+<table class="table">
 
-        '<div class="panel">' +
+<tr>
+<th>ID</th>
+<th>IN-GAME NAME</th>
+<th>UNIT</th>
+<th>STATUS</th>
+<th>ACTION</th>
+</tr>
 
-        '<h2>' +
-        'APPLICATION CONTROL' +
-        '</h2>' +
+${apps.map(a=>`
 
-        (
-            apps.length
+<tr>
 
-            ?
+<td>${a.id}</td>
 
-            '<table class="table">' +
+<td>
+<b>${esc(a.name)}</b>
 
-            '<tr>' +
-            '<th>ID</th>' +
-            '<th>IN-GAME NAME</th>' +
-            '<th>UNIT</th>' +
-            '<th>STATUS</th>' +
-            '<th>ACTION</th>' +
-            '</tr>' +
+<div class="muted">
+${esc(a.experience)}
+</div>
+</td>
 
-            apps.map(
-                a =>
+<td>
+${esc(a.unit)}
+</td>
 
-                '<tr>' +
+<td>
+${esc(a.status)}
+</td>
 
-                '<td>' +
-                a.id +
-                '</td>' +
+<td>
 
-                '<td>' +
-                '<b>' +
-                esc(a.name) +
-                '</b>' +
+${
+a.status==="PENDING"
+?
+`
+<button
+class="btn green small"
+onclick="approve(${a.id})">
+ACCEPT AS AGENT
+</button>
 
-                '<div class="muted">' +
-                esc(a.experience) +
-                '</div>' +
+<button
+class="btn small"
+onclick="reject(${a.id})">
+REJECT
+</button>
+`
+:"—"
+}
 
-                '</td>' +
+</td>
 
-                '<td>' +
-                esc(a.unit) +
-                '</td>' +
+</tr>
 
-                '<td>' +
-                esc(a.status) +
-                '</td>' +
+`).join("")}
 
-                '<td>' +
+</table>
+`
+:
+'<div class="empty">No applications.</div>'
+}
 
-                (
-                    a.status === 'PENDING'
+</div>
 
-                    ?
+`;
 
-                    '<button class="btn green small" onclick="approve(' +
-                    a.id +
-                    ')">ACCEPT AS AGENT</button> ' +
 
-                    '<button class="btn small" onclick="reject(' +
-                    a.id +
-                    ')">REJECT</button>'
+h += `
 
-                    :
+<div class="panel">
 
-                    '—'
-                ) +
+<h2>
+SECTOR TABLE
+</h2>
 
-                '</td>' +
+<table class="table">
 
-                '</tr>'
+<tr>
+<th>USERNAME / CODE</th>
+<th>IN-GAME NAME</th>
+<th>RANK</th>
+<th>UNIT</th>
+<th>CLEARANCE</th>
+<th>CREATED</th>
+</tr>
 
-            ).join('') +
+${users.map(u=>`
 
-            '</table>'
+<tr>
 
-            :
+<td class="mono">
+${esc(u.username)}
+</td>
 
-            '<div class="empty">' +
-            'No applications.' +
-            '</div>'
-        ) +
+<td>
+${esc(u.in_game_name)}
+</td>
 
-        '</div>';
+<td>
+${esc(u.rank)}
+</td>
 
+<td>
+${esc(u.unit)}
+</td>
 
-    h +=
+<td>
+${esc(u.clearance)}
+</td>
 
-        '<div class="panel">' +
+<td>
+${esc(u.created_at)}
+</td>
 
-        '<h2>SECTOR TABLE</h2>' +
+</tr>
 
-        '<table class="table">' +
+`).join("")}
 
-        '<tr>' +
-        '<th>USERNAME / CODE</th>' +
-        '<th>IN-GAME NAME</th>' +
-        '<th>RANK</th>' +
-        '<th>UNIT</th>' +
-        '<th>CLEARANCE</th>' +
-        '<th>CREATED</th>' +
-        '</tr>' +
+</table>
 
-        users.map(
-            u =>
+</div>
 
-            '<tr>' +
+`;
 
-            '<td class="mono">' +
-            esc(u.username) +
-            '</td>' +
 
-            '<td>' +
-            esc(u.in_game_name) +
-            '</td>' +
+h += `
 
-            '<td>' +
-            esc(u.rank) +
-            '</td>' +
+<div class="panel">
 
-            '<td>' +
-            esc(u.unit) +
-            '</td>' +
+<h2>
+SEND MESSAGE / TASK
+</h2>
 
-            '<td>' +
-            esc(u.clearance) +
-            '</td>' +
+<div class="cols">
 
-            '<td>' +
-            esc(u.created_at) +
-            '</td>' +
+<div class="field">
 
-            '</tr>'
+<label>
+TARGET USERNAME / APPLICATION
+</label>
 
-        ).join('') +
+<input
+id="tmUser"
+class="input"
+placeholder="agent_001 or app:12">
 
-        '</table>' +
+</div>
 
-        '</div>';
 
+<div class="field">
 
-    h +=
+<label>
+TYPE
+</label>
 
-        '<div class="panel">' +
+<select
+id="tmType"
+class="input">
 
-        '<h2>SEND MESSAGE / TASK</h2>' +
+<option>MESSAGE</option>
+<option>TASK</option>
+<option>ASSIGNMENT</option>
 
-        '<div class="cols">' +
+</select>
 
-        '<div class="field">' +
+</div>
 
-        '<label>' +
-        'TARGET USERNAME / APPLICATION' +
-        '</label>' +
+</div>
 
-        '<input ' +
-        'id="tmUser" ' +
-        'class="input" ' +
-        'placeholder="agent_001 or app:12">' +
 
-        '</div>' +
+<div class="field">
 
-        '<div class="field">' +
+<label>
+SUBJECT
+</label>
 
-        '<label>TYPE</label>' +
+<input
+id="tmSub"
+class="input">
 
-        '<select id="tmType" class="input">' +
+</div>
 
-        '<option>MESSAGE</option>' +
-        '<option>TASK</option>' +
-        '<option>ASSIGNMENT</option>' +
 
-        '</select>' +
+<div class="field">
 
-        '</div>' +
+<label>
+MESSAGE / TASK DETAILS
+</label>
 
-        '</div>' +
+<textarea
+id="tmBody"
+class="input"
+rows="5"></textarea>
 
-        '<div class="field">' +
+</div>
 
-        '<label>SUBJECT</label>' +
 
-        '<input id="tmSub" class="input">' +
+<button
+class="btn red"
+onclick="sendMessage()">
+SEND
+</button>
 
-        '</div>' +
+</div>
 
-        '<div class="field">' +
+`;
 
-        '<label>MESSAGE / TASK DETAILS</label>' +
 
-        '<textarea id="tmBody" class="input" rows="5"></textarea>' +
+h += `
 
-        '</div>' +
+<div class="panel">
 
-        '<button class="btn red" onclick="sendMessage()">' +
-        'SEND' +
-        '</button>' +
+<h2>
+REGISTER INTELLIGENCE REPORT
+</h2>
 
-        '</div>';
+<div class="field">
 
+<label>
+TITLE
+</label>
 
-    h +=
+<input
+id="rt"
+class="input">
 
-        '<div class="panel">' +
+</div>
 
-        '<h2>REGISTER INTELLIGENCE REPORT</h2>' +
 
-        '<div class="field">' +
+<div class="field">
 
-        '<label>TITLE</label>' +
+<label>
+CLASSIFICATION
+</label>
 
-        '<input id="rt" class="input">' +
+<select
+id="rc"
+class="input">
 
-        '</div>' +
+<option>CONFIDENTIAL</option>
+<option>SECRET</option>
+<option>TOP SECRET</option>
+<option>OMEGA</option>
 
-        '<div class="field">' +
+</select>
 
-        '<label>CLASSIFICATION</label>' +
+</div>
 
-        '<select id="rc" class="input">' +
 
-        '<option>CONFIDENTIAL</option>' +
-        '<option>SECRET</option>' +
-        '<option>TOP SECRET</option>' +
-        '<option>OMEGA</option>' +
+<div class="field">
 
-        '</select>' +
+<label>
+PDF
+</label>
 
-        '</div>' +
+<input
+id="rf"
+type="file"
+accept="application/pdf"
+class="input">
 
-        '<div class="field">' +
+</div>
 
-        '<label>PDF</label>' +
 
-        '<input id="rf" type="file" accept="application/pdf" class="input">' +
+<button
+class="btn red"
+onclick="uploadReport()">
+REGISTER PDF REPORT
+</button>
 
-        '</div>' +
+</div>
 
-        '<button class="btn red" onclick="uploadReport()">' +
-        'REGISTER PDF REPORT' +
-        '</button>' +
+`;
 
-        '</div>';
 
+if(me.rank==="COMMAND OF CIA"){
 
-    if(
-        me.rank === 'COMMAND OF CIA'
-    ){
+h += `
 
-        h +=
+<div class="panel">
 
-            '<div class="panel">' +
+<h2>
+COMMAND // CREATE ACCOUNT
+</h2>
 
-            '<h2>' +
-            'COMMAND // CREATE ACCOUNT' +
-            '</h2>' +
+<div class="cols">
 
-            '<div class="cols">' +
+<div class="field">
+<label>USERNAME / CODE</label>
+<input id="nu" class="input">
+</div>
 
-            '<div class="field">' +
-            '<label>USERNAME / CODE</label>' +
-            '<input id="nu" class="input">' +
-            '</div>' +
+<div class="field">
+<label>IN-GAME NAME (ENGLISH)</label>
+<input id="nin" class="input">
+</div>
 
-            '<div class="field">' +
-            '<label>IN-GAME NAME (ENGLISH)</label>' +
-            '<input id="nin" class="input">' +
-            '</div>' +
+<div class="field">
+<label>PASSWORD</label>
+<input id="np" class="input" type="password">
+</div>
 
-            '<div class="field">' +
-            '<label>PASSWORD</label>' +
-            '<input id="np" class="input" type="password">' +
-            '</div>' +
+<div class="field">
+<label>RANK</label>
 
-            '<div class="field">' +
-            '<label>RANK</label>' +
+<select id="nr" class="input">
 
-            '<select id="nr" class="input">' +
+<option>AGENT</option>
+<option>AGENT OFFICER</option>
+<option>COMMAND OF CIA</option>
 
-            '<option>AGENT</option>' +
-            '<option>AGENT OFFICER</option>' +
-            '<option>COMMAND OF CIA</option>' +
+</select>
 
-            '</select>' +
+</div>
 
-            '</div>' +
+<div class="field">
+<label>UNIT</label>
 
-            '<div class="field">' +
-            '<label>UNIT</label>' +
-            '<input id="nunit" class="input" value="Intelligence Operations">' +
-            '</div>' +
+<input
+id="nunit"
+class="input"
+value="Intelligence Operations">
 
-            '<div class="field">' +
-            '<label>CLEARANCE</label>' +
+</div>
 
-            '<select id="nc" class="input">' +
+<div class="field">
 
-            '<option>RESTRICTED</option>' +
-            '<option>CONFIDENTIAL</option>' +
-            '<option>SECRET</option>' +
-            '<option>TOP SECRET</option>' +
-            '<option>OMEGA</option>' +
+<label>
+CLEARANCE
+</label>
 
-            '</select>' +
+<select id="nc" class="input">
 
-            '</div>' +
+<option>RESTRICTED</option>
+<option>CONFIDENTIAL</option>
+<option>SECRET</option>
+<option>TOP SECRET</option>
+<option>OMEGA</option>
 
-            '</div>' +
+</select>
 
-            '<button class="btn red" onclick="createUser()">' +
-            'CREATE ACCOUNT' +
-            '</button>' +
+</div>
 
-            '</div>';
+</div>
 
-    }
 
+<button
+class="btn red"
+onclick="createUser()">
+CREATE ACCOUNT
+</button>
 
-    $('userContent').innerHTML = h;
+</div>
+
+`;
+
+}
+
+
+$("userContent").innerHTML = h;
 
 }
 
@@ -2796,37 +2495,26 @@ async function renderAdmin(){
 
 async function approve(id){
 
-    let r =
-        await fetch(
-            '/api/admin/application/' +
-            id +
-            '/approve',
-            {
-                method:'POST'
-            }
-        );
+let r =
+await fetch(
+"/api/admin/application/"+id+"/approve",
+{
+method:"POST"
+}
+);
 
+let j =
+await r.json();
 
-    let j =
-        await r.json();
+if(!r.ok)
+return toast("Could not approve.");
 
+toast(
+"Approved. Username: "+
+j.username
+);
 
-    if(!r.ok){
-
-        return toast(
-            'Could not approve.'
-        );
-
-    }
-
-
-    toast(
-        'Approved. Credentials issued to the applicant dashboard. Username: ' +
-        j.username
-    );
-
-
-    renderAdmin();
+renderAdmin();
 
 }
 
@@ -2837,32 +2525,22 @@ async function approve(id){
 
 async function reject(id){
 
-    let r =
-        await fetch(
-            '/api/admin/application/' +
-            id +
-            '/reject',
-            {
-                method:'POST'
-            }
-        );
+let r =
+await fetch(
+"/api/admin/application/"+id+"/reject",
+{
+method:"POST"
+}
+);
 
+if(!r.ok)
+return toast("Could not reject.");
 
-    if(!r.ok){
+toast(
+"Application rejected."
+);
 
-        return toast(
-            'Could not reject.'
-        );
-
-    }
-
-
-    toast(
-        'Application rejected.'
-    );
-
-
-    renderAdmin();
+renderAdmin();
 
 }
 
@@ -2873,87 +2551,63 @@ async function reject(id){
 
 async function sendMessage(){
 
-    let b = {
+let b = {
 
-        target:
-            $('tmUser')
-            .value
-            .trim(),
+target:$("tmUser").value.trim(),
+subject:$("tmSub").value.trim(),
+body:$("tmBody").value.trim(),
+type:$("tmType").value
 
-        subject:
-            $('tmSub')
-            .value
-            .trim(),
-
-        body:
-            $('tmBody')
-            .value
-            .trim(),
-
-        type:
-            $('tmType')
-            .value
-
-    };
+};
 
 
-    if(
-        !b.target ||
-        !b.subject ||
-        !b.body
-    ){
+if(
+!b.target ||
+!b.subject ||
+!b.body
+){
 
-        return toast(
-            'Complete target, subject and message.'
-        );
+return toast(
+"Complete target, subject and message."
+);
 
-    }
-
-
-    let r =
-        await fetch(
-            '/api/admin/message',
-            {
-                method:'POST',
-
-                headers:{
-                    'Content-Type':
-                        'application/json'
-                },
-
-                body:
-                    JSON.stringify(b)
-            }
-        );
+}
 
 
-    if(!r.ok){
-
-        let j =
-            await r.json();
-
-        return toast(
-            j.error ===
-            'USER_NOT_FOUND'
-
-                ?
-
-            'Username not found.'
-
-                :
-
-            'Could not send.'
-        );
-
-    }
+let r =
+await fetch(
+"/api/admin/message",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(b)
+}
+);
 
 
-    toast(
-        'Message/task sent.'
-    );
+if(!r.ok){
+
+let j =
+await r.json();
+
+return toast(
+j.error==="USER_NOT_FOUND"
+?
+"Username not found."
+:
+"Could not send."
+);
+
+}
 
 
-    $('tmBody').value = '';
+toast(
+"Message/task sent."
+);
+
+$("tmBody").value="";
 
 }
 
@@ -2964,70 +2618,52 @@ async function sendMessage(){
 
 async function createUser(){
 
-    let b = {
+let b = {
 
-        username:
-            $('nu')
-            .value
-            .trim(),
+username:$("nu").value.trim(),
+password:$("np").value,
+rank:$("nr").value,
+unit:$("nunit").value.trim(),
+clearance:$("nc").value,
+in_game_name:$("nin").value.trim()
 
-        password:
-            $('np')
-            .value,
-
-        rank:
-            $('nr')
-            .value,
-
-        unit:
-            $('nunit')
-            .value
-            .trim(),
-
-        clearance:
-            $('nc')
-            .value,
-
-        in_game_name:
-            $('nin')
-            .value
-            .trim()
-
-    };
+};
 
 
-    let r =
-        await fetch(
-            '/api/admin/users',
-            {
-                method:'POST',
-
-                headers:{
-                    'Content-Type':
-                        'application/json'
-                },
-
-                body:
-                    JSON.stringify(b)
-            }
-        );
+let r =
+await fetch(
+"/api/admin/users",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(b)
+}
+);
 
 
-    if(!r.ok){
+if(!r.ok){
 
-        return toast(
-            'Could not create account.'
-        );
+let j =
+await r.json();
 
-    }
+return toast(
+j.error==="ALPHA_MUST_BE_CREATED_IN_SERVER_CODE"
+?
+"ALPHA can only be created in server.js."
+:
+"Could not create account."
+);
+
+}
 
 
-    toast(
-        'Account created.'
-    );
+toast(
+"Account created."
+);
 
-
-    renderAdmin();
+renderAdmin();
 
 }
 
@@ -3038,75 +2674,65 @@ async function createUser(){
 
 async function uploadReport(){
 
-    let f =
-        $('rf')
-        .files[0];
+let f =
+$("rf").files[0];
 
-    let title =
-        $('rt')
-        .value
-        .trim();
+let title =
+$("rt").value.trim();
 
 
-    if(
-        !f ||
-        !title
-    ){
+if(!f || !title){
 
-        return toast(
-            'Enter title and select a PDF.'
-        );
+return toast(
+"Enter title and select a PDF."
+);
 
-    }
+}
 
 
-    let fd =
-        new FormData();
+let fd =
+new FormData();
+
+fd.append(
+"title",
+title
+);
+
+fd.append(
+"classification",
+$("rc").value
+);
+
+fd.append(
+"pdf",
+f
+);
 
 
-    fd.append(
-        'title',
-        title
-    );
+let r =
+await fetch(
+"/api/admin/reports",
+{
+method:"POST",
+body:fd
+}
+);
 
 
-    fd.append(
-        'classification',
-        $('rc').value
-    );
+if(!r.ok){
+
+return toast(
+"Could not register report."
+);
+
+}
 
 
-    fd.append(
-        'pdf',
-        f
-    );
+toast(
+"PDF report registered."
+);
 
-
-    let r =
-        await fetch(
-            '/api/admin/reports',
-            {
-                method:'POST',
-                body:fd
-            }
-        );
-
-
-    if(!r.ok){
-
-        return toast(
-            'Could not register report.'
-        );
-
-    }
-
-
-    toast(
-        'PDF report registered.'
-    );
-
-
-    loadUser();
+loadUser();
 
 }
 
@@ -3117,26 +2743,21 @@ async function uploadReport(){
 
 function viewPdf(id){
 
-    $('pdfFrame')
-        .src =
-        '/api/reports/' +
-        id;
+$("pdfFrame").src =
+"/api/reports/"+id;
 
-    $('pdfModal')
-        .classList
-        .remove('hidden');
+$("pdfModal")
+.classList.remove("hidden");
 
 }
 
 
 function closePdf(){
 
-    $('pdfFrame')
-        .src = '';
+$("pdfFrame").src="";
 
-    $('pdfModal')
-        .classList
-        .add('hidden');
+$("pdfModal")
+.classList.add("hidden");
 
 }
 
@@ -3147,111 +2768,125 @@ function closePdf(){
 
 async function logout(){
 
-    try{
+try{
 
-        await fetch(
-            '/api/logout',
-            {
-                method:'POST'
-            }
-        );
+await fetch(
+"/api/logout",
+{
+method:"POST",
+credentials:"same-origin"
+}
+);
 
-    }catch(e){
+}catch{}
 
-        console.error(e);
-
-    }
-
-    location.reload();
+location.reload();
 
 }
 
 
 /* =====================================================
-   SESSION RESTORE
+   INITIAL SESSION CHECK
 ===================================================== */
 
-fetch(
-    '/api/me',
-    {
-        credentials:'same-origin'
-    }
-)
-.then(
-    r => r.json()
-)
-.then(
-    j => {
+async function boot(){
 
-        if(j.user){
+try{
 
-            me = j.user;
-
-            enterUser();
-
-            return;
-
-        }
-
-
-        fetch(
-            '/api/application/me'
-        )
-        .then(
-            r => r.json()
-        )
-        .then(
-            x => {
-
-                if(x.application){
-
-                    appdata = x;
-
-                    $('home')
-                        .classList
-                        .add('hidden');
-
-                    $('topActions')
-                        .classList
-                        .add('hidden');
-
-                    $('appDash')
-                        .classList
-                        .remove('hidden');
-
-                    $('appNameTitle')
-                        .textContent =
-                        x.application.name;
-
-                    $('appStatus')
-                        .innerHTML =
-                        '<span class="tag amber">' +
-                        esc(x.application.status) +
-                        '</span>';
-
-                    $('appMeta')
-                        .textContent =
-                        'Application #' +
-                        x.application.id +
-                        ' // ' +
-                        x.application.unit;
-
-                    appTab('messages');
-
-                }
-
-            }
-        );
-
-    }
-)
-.catch(
-    error =>
-        console.error(
-            'SESSION RESTORE ERROR:',
-            error
-        )
+const r =
+await fetch(
+"/api/me",
+{
+credentials:"same-origin",
+cache:"no-store"
+}
 );
+
+const j =
+await r.json();
+
+
+if(j.user){
+
+me = j.user;
+
+
+/*
+ * إذا كان الحساب log:
+ * لا نعرض Dashboard نهائيًا.
+ */
+
+if(
+me.username === ALPHA_USERNAME &&
+me.rank === ALPHA_RANK
+){
+
+enterAlpha();
+
+return;
+
+}
+
+
+enterUser();
+
+return;
+
+}
+
+
+/*
+ * application session
+ */
+
+const ar =
+await fetch(
+"/api/application/me",
+{
+credentials:"same-origin"
+}
+);
+
+const x =
+await ar.json();
+
+
+if(x.application){
+
+appdata = x;
+
+$("home").classList.add("hidden");
+$("topActions").classList.add("hidden");
+$("appDash").classList.remove("hidden");
+
+$("appNameTitle").textContent =
+x.application.name;
+
+$("appStatus").innerHTML =
+`<span class="tag amber">
+${esc(x.application.status)}
+</span>`;
+
+$("appMeta").textContent =
+"Application #"+
+x.application.id+
+" // "+
+x.application.unit;
+
+appTab("messages");
+
+}
+
+}catch(error){
+
+console.error(
+"BOOT ERROR:",
+error
+);
+
+}
+
+}
 
 
 /* =====================================================
@@ -3259,117 +2894,76 @@ fetch(
 ===================================================== */
 
 let lang =
-    localStorage.getItem(
-        'cia_lang'
-    ) || 'en';
+localStorage.getItem("cia_lang") ||
+"en";
 
 
 const I18N = {
 
-    en:{
-        LOGIN:'LOGIN',
-        APPLY:'APPLY',
-        PDF_VIEWER:'CLASSIFIED PDF VIEWER',
-        CLOSE:'CLOSE'
-    },
+en:{
+LOGIN:"LOGIN",
+APPLY:"APPLY"
+},
 
-    ar:{
-        LOGIN:'تسجيل الدخول',
-        APPLY:'التقديم',
-        PDF_VIEWER:'عارض ملف PDF السري',
-        CLOSE:'إغلاق'
-    }
+ar:{
+LOGIN:"تسجيل الدخول",
+APPLY:"التقديم"
+}
 
 };
 
 
 function setLang(next){
 
-    lang =
-        next === 'ar'
-            ? 'ar'
-            : 'en';
+lang =
+next==="ar"
+?
+"ar"
+:
+"en";
 
 
-    localStorage.setItem(
-        'cia_lang',
-        lang
-    );
+localStorage.setItem(
+"cia_lang",
+lang
+);
+
+document.documentElement.lang =
+lang;
+
+document.documentElement.dir =
+lang==="ar"
+?
+"rtl"
+:
+"ltr";
 
 
-    document.documentElement.lang =
-        lang;
+document.body.classList.toggle(
+"rtl",
+lang==="ar"
+);
 
 
-    document.documentElement.dir =
-        lang === 'ar'
-            ? 'rtl'
-            : 'ltr';
+$("langEN")
+.classList.toggle(
+"active",
+lang==="en"
+);
 
 
-    document.body.classList.toggle(
-        'rtl',
-        lang === 'ar'
-    );
-
-
-    $('langEN')
-        .classList
-        .toggle(
-            'active',
-            lang === 'en'
-        );
-
-
-    $('langAR')
-        .classList
-        .toggle(
-            'active',
-            lang === 'ar'
-        );
-
-
-    document
-        .querySelectorAll(
-            '[data-i18n]'
-        )
-        .forEach(
-            el => {
-
-                const k =
-                    el.dataset.i18n;
-
-                el.textContent =
-                    I18N[lang][k] ||
-                    el.textContent;
-
-            }
-        );
-
-
-    const actions =
-        $('topActions')
-        .querySelectorAll(
-            'button'
-        );
-
-
-    if(actions.length >= 2){
-
-        actions[0]
-            .textContent =
-            I18N[lang].LOGIN;
-
-        actions[1]
-            .textContent =
-            I18N[lang].APPLY;
-
-    }
+$("langAR")
+.classList.toggle(
+"active",
+lang==="ar"
+);
 
 }
 
 
 setLang(lang);
+
+boot();
 
 </script>
 
