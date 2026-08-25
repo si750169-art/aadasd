@@ -9,10 +9,6 @@ const crypto = require("crypto");
 
 const app = express();
 
-// =====================================================
-// CONFIG
-// =====================================================
-
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 
@@ -123,14 +119,14 @@ app.use(
 );
 
 // =====================================================
-// IP DETECTION
+// IP
 // =====================================================
 
 function getClientIP(req) {
-    const cloudflareIP = req.headers["cf-connecting-ip"];
+    const cf = req.headers["cf-connecting-ip"];
 
-    if (cloudflareIP) {
-        return String(cloudflareIP).trim();
+    if (cf) {
+        return String(cf).trim();
     }
 
     const forwarded = req.headers["x-forwarded-for"];
@@ -143,8 +139,8 @@ function getClientIP(req) {
     }
 
     return String(req.socket.remoteAddress || "unknown")
-        .trim()
-        .replace("::ffff:", "");
+        .replace("::ffff:", "")
+        .trim();
 }
 
 app.use((req, res, next) => {
@@ -180,18 +176,19 @@ app.use((req, res, next) => {
 });
 
 // =====================================================
-// RANKS / CLEARANCE
+// RANKS
 // =====================================================
 
 const RANKS = [
     "AGENT",
     "AGENT OFFICER",
-    "COMMAND OF CIA"
+    "COMMAND OF CIA",
+    "ALPHA"
 ];
 
-// ALPHA is intentionally NOT inside RANKS.
-// This means normal admin user creation cannot create
-// an ALPHA account.
+// مهم:
+// ALPHA ليست رتبة يستطيع الموقع إعطاءها.
+// الحساب الوحيد الذي يحصل عليها يتم إنشاؤه هنا في الكود.
 
 const ADMIN = [
     "AGENT OFFICER",
@@ -202,6 +199,7 @@ const COMMAND = [
     "COMMAND OF CIA"
 ];
 
+const ALPHA_USERNAME = "log";
 const ALPHA_RANK = "ALPHA";
 
 const clearanceRank = {
@@ -213,7 +211,7 @@ const clearanceRank = {
 };
 
 // =====================================================
-// MULTER
+// UPLOAD
 // =====================================================
 
 const upload = multer({
@@ -275,7 +273,7 @@ function canView(user, classification) {
 }
 
 // =====================================================
-// AUDIT SYSTEM
+// AUDIT
 // =====================================================
 
 function audit(req, action, details = "") {
@@ -339,37 +337,22 @@ function ensureCommand() {
             "code_alpha"
         );
 
-        console.log("COMMAND ACCOUNT CREATED: code_alpha");
+        console.log("COMMAND ACCOUNT CREATED");
     }
 }
-
-ensureCommand();
 
 // =====================================================
 // ALPHA LOG ACCOUNT
 // =====================================================
-//
-// This account is intentionally created by code only.
-// ALPHA is NOT part of RANKS, therefore normal account
-// creation cannot assign this rank.
-//
-// Username: log
-// Password: log_1
-//
-// The account is restricted to the Alpha log endpoint.
-// =====================================================
 
 function ensureAlphaLogAccount() {
-    const username = "log";
-    const password = "log_1";
-
     const existing = db
         .prepare("SELECT * FROM users WHERE username = ?")
-        .get(username);
+        .get(ALPHA_USERNAME);
 
     if (!existing) {
         const passwordHash = bcrypt.hashSync(
-            password,
+            "log_1",
             12
         );
 
@@ -385,18 +368,41 @@ function ensureAlphaLogAccount() {
             )
             VALUES (?, ?, ?, ?, ?, ?)
         `).run(
-            username,
+            ALPHA_USERNAME,
             passwordHash,
             ALPHA_RANK,
-            "ALPHA",
+            "CIA LOGISTICS",
             "OMEGA",
-            "ALPHA LOG"
+            "ALPHA"
         );
 
-        console.log("ALPHA LOG ACCOUNT CREATED: log");
+        console.log(
+            "ALPHA LOG ACCOUNT CREATED: log"
+        );
+    } else {
+
+        /*
+         * نتأكد أن الحساب لا يتحول إلى Agent
+         * حتى لو كان موجودًا في قاعدة بيانات قديمة.
+         */
+
+        db.prepare(`
+            UPDATE users
+            SET
+                rank = ?,
+                unit = ?,
+                clearance = ?
+            WHERE username = ?
+        `).run(
+            ALPHA_RANK,
+            "CIA LOGISTICS",
+            "OMEGA",
+            ALPHA_USERNAME
+        );
     }
 }
 
+ensureCommand();
 ensureAlphaLogAccount();
 
 // =====================================================
@@ -440,19 +446,13 @@ function command(req, res, next) {
 }
 
 // =====================================================
-// ALPHA ONLY
-// =====================================================
-//
-// Only the ALPHA rank can access logs.
-//
-// Normal ADMIN users cannot access this.
-// COMMAND users cannot access this.
-// Other users cannot access this.
+// ALPHA LOG ACCESS
 // =====================================================
 
-function alphaOnly(req, res, next) {
+function alpha(req, res, next) {
     if (
         !req.session.user ||
+        req.session.user.username !== ALPHA_USERNAME ||
         req.session.user.rank !== ALPHA_RANK
     ) {
         return res.status(403).json({
@@ -672,17 +672,16 @@ app.post("/api/login", (req, res, next) => {
                     `rank=${user.rank}`
                 );
 
-                // ALPHA gets a dedicated response.
-                if (user.rank === ALPHA_RANK) {
-                    return res.json({
-                        user: safeUser(user),
-                        alpha: true,
-                        logsOnly: true
-                    });
-                }
+                /*
+                 * ALPHA لا يحصل على Dashboard الموظفين.
+                 * الواجهة الأمامية ستقرأ هذا الحقل وتفتح صفحة اللوقات.
+                 */
 
                 res.json({
-                    user: safeUser(user)
+                    user: safeUser(user),
+                    alpha:
+                        user.username === ALPHA_USERNAME &&
+                        user.rank === ALPHA_RANK
                 });
             });
         });
@@ -710,53 +709,30 @@ app.post("/api/logout", auth, (req, res) => {
 // =====================================================
 
 app.get("/api/me", (req, res) => {
+    const user = req.session.user;
+
     res.json({
-        user: safeUser(req.session.user)
+        user: safeUser(user),
+        alpha:
+            !!user &&
+            user.username === ALPHA_USERNAME &&
+            user.rank === ALPHA_RANK
     });
 });
 
 // =====================================================
-// ALPHA LOGS
-// ONLY ALPHA CAN ACCESS
-// =====================================================
-
-app.get(
-    "/api/alpha/logs",
-    alphaOnly,
-    (req, res) => {
-        const logs = db.prepare(`
-            SELECT
-                id,
-                actor,
-                actor_label,
-                action,
-                ip,
-                details,
-                created_at
-            FROM audit
-            ORDER BY id DESC
-            LIMIT 1000
-        `).all();
-
-        res.json({
-            ok: true,
-            logs
-        });
-    }
-);
-
-// =====================================================
-// DASHBOARD
-// =====================================================
-//
-// ALPHA does NOT get the normal dashboard.
-// This guarantees the log account is logs-only.
+// NORMAL DASHBOARD
 // =====================================================
 
 app.get("/api/dashboard", auth, (req, res) => {
-    if (req.session.user.rank === ALPHA_RANK) {
+
+    // منع ALPHA من استخدام Dashboard الموظفين
+    if (
+        req.session.user.username === ALPHA_USERNAME &&
+        req.session.user.rank === ALPHA_RANK
+    ) {
         return res.status(403).json({
-            error: "ALPHA_LOGS_ONLY"
+            error: "ALPHA_LOG_ACCOUNT"
         });
     }
 
@@ -805,9 +781,11 @@ app.post(
     auth,
     (req, res) => {
 
-        if (req.session.user.rank === ALPHA_RANK) {
+        if (
+            req.session.user.username === ALPHA_USERNAME
+        ) {
             return res.status(403).json({
-                error: "ALPHA_LOGS_ONLY"
+                error: "ALPHA_LOG_ACCOUNT"
             });
         }
 
@@ -835,7 +813,6 @@ app.get(
     "/api/admin/applications",
     admin,
     (req, res) => {
-
         const applications = db.prepare(`
             SELECT
                 id,
@@ -976,7 +953,7 @@ Keep these credentials private.`;
         audit(
             req,
             "APPLICATION_APPROVED",
-            `application=${application.id};user=${username};newUser=${userResult.lastInsertRowid}`
+            `application=${application.id};user=${username}`
         );
 
         res.json({
@@ -1048,12 +1025,6 @@ app.get(
 // =====================================================
 // CREATE USER
 // =====================================================
-//
-// IMPORTANT:
-// ALPHA is deliberately excluded from RANKS.
-// Therefore nobody can create an ALPHA account through
-// this API.
-// =====================================================
 
 app.post(
     "/api/admin/users",
@@ -1067,6 +1038,16 @@ app.post(
             unit,
             clearance
         } = req.body;
+
+        /*
+         * ALPHA لا يمكن إنشاؤها من الموقع.
+         */
+
+        if (rank === ALPHA_RANK) {
+            return res.status(403).json({
+                error: "ALPHA_MUST_BE_CREATED_IN_SERVER_CODE"
+            });
+        }
 
         if (
             !username ||
@@ -1084,6 +1065,7 @@ app.post(
         }
 
         try {
+
             const result = db.prepare(`
                 INSERT INTO users
                 (
@@ -1186,7 +1168,7 @@ app.post(
             audit(
                 req,
                 "APPLICATION_MESSAGE_SENT",
-                `application=${id};type=${type};subject=${subject}`
+                `application=${id};type=${type}`
             );
 
             return res.json({
@@ -1229,7 +1211,7 @@ app.post(
         audit(
             req,
             "MESSAGE_SENT",
-            `to=${target};type=${type};subject=${subject}`
+            `to=${target};type=${type}`
         );
 
         res.json({
@@ -1283,7 +1265,7 @@ app.post(
         audit(
             req,
             "REPORT_REGISTERED",
-            `report=${result.lastInsertRowid};title=${req.body.title}`
+            `report=${result.lastInsertRowid}`
         );
 
         res.json({
@@ -1302,10 +1284,12 @@ app.get(
     auth,
     (req, res) => {
 
-        // Alpha is logs-only.
-        if (req.session.user.rank === ALPHA_RANK) {
+        // ALPHA ليس له وصول للتقارير.
+        if (
+            req.session.user.username === ALPHA_USERNAME
+        ) {
             return res.status(403).json({
-                error: "ALPHA_LOGS_ONLY"
+                error: "ALPHA_LOG_ACCOUNT"
             });
         }
 
@@ -1341,6 +1325,116 @@ app.get(
 );
 
 // =====================================================
+// ALPHA LOGS
+// =====================================================
+// هذا هو endpoint الوحيد الخاص بحساب log.
+
+app.get(
+    "/api/alpha/logs",
+    alpha,
+    (req, res) => {
+
+        try {
+
+            const logs = db.prepare(`
+                SELECT
+                    id,
+                    actor,
+                    actor_label,
+                    action,
+                    ip,
+                    details,
+                    created_at
+                FROM audit
+                ORDER BY id DESC
+                LIMIT 500
+            `).all();
+
+            res.json({
+                ok: true,
+                rank: ALPHA_RANK,
+                logs
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ALPHA LOG ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                error: "LOG_LOAD_FAILED"
+            });
+        }
+    }
+);
+
+// =====================================================
+// COMMAND AUDIT
+// =====================================================
+// أبقيناه للـ COMMAND.
+// حساب log له endpoint مستقل.
+
+app.get(
+    "/api/command/audit",
+    command,
+    (req, res) => {
+
+        const logs = db.prepare(`
+            SELECT
+                id,
+                actor,
+                actor_label,
+                action,
+                ip,
+                details,
+                created_at
+            FROM audit
+            ORDER BY id DESC
+            LIMIT 500
+        `).all();
+
+        res.json({
+            ok: true,
+            logs
+        });
+    }
+);
+
+// =====================================================
+// OLD ADMIN LOGS
+// =====================================================
+// تم إغلاقه عن ADMIN.
+// فقط COMMAND يستطيع الوصول إليه.
+
+app.get(
+    "/api/admin/logs",
+    command,
+    (req, res) => {
+
+        const logs = db.prepare(`
+            SELECT
+                id,
+                actor,
+                actor_label,
+                action,
+                ip,
+                details,
+                created_at
+            FROM audit
+            ORDER BY id DESC
+            LIMIT 500
+        `).all();
+
+        res.json({
+            ok: true,
+            logs
+        });
+    }
+);
+
+// =====================================================
 // SECTOR
 // =====================================================
 
@@ -1349,10 +1443,12 @@ app.get(
     auth,
     (req, res) => {
 
-        // Alpha is logs-only.
-        if (req.session.user.rank === ALPHA_RANK) {
+        // ALPHA لا يرى القطاع.
+        if (
+            req.session.user.username === ALPHA_USERNAME
+        ) {
             return res.status(403).json({
-                error: "ALPHA_LOGS_ONLY"
+                error: "ALPHA_LOG_ACCOUNT"
             });
         }
 
@@ -1366,22 +1462,36 @@ app.get(
                 clearance,
                 created_at
             FROM users
+            WHERE username != ?
             ORDER BY
                 CASE rank
                     WHEN "COMMAND OF CIA" THEN 1
                     WHEN "AGENT OFFICER" THEN 2
-                    ELSE 3
+                    WHEN "AGENT" THEN 3
+                    ELSE 4
                 END,
                 id
-        `).all();
+        `).all(ALPHA_USERNAME);
 
         res.json(users);
     }
 );
 
 // =====================================================
-// STATIC WEBSITE
-// public/index.html
+// HEALTH CHECK
+// =====================================================
+
+app.get("/api/health", (req, res) => {
+    res.json({
+        ok: true,
+        server: "CIA RP",
+        database: true,
+        time: new Date().toISOString()
+    });
+});
+
+// =====================================================
+// STATIC
 // =====================================================
 
 app.use(
@@ -1391,7 +1501,7 @@ app.use(
 );
 
 // =====================================================
-// INDEX FALLBACK
+// INDEX
 // =====================================================
 
 app.get("/", (req, res) => {
@@ -1404,7 +1514,7 @@ app.get("/", (req, res) => {
 
     if (!fs.existsSync(indexPath)) {
         return res.status(404).send(
-            "index.html not found. Make sure public/index.html exists."
+            "index.html not found."
         );
     }
 
@@ -1418,7 +1528,10 @@ app.get("/", (req, res) => {
 app.use(
     (err, req, res, next) => {
 
-        console.error(err);
+        console.error(
+            "SERVER ERROR:",
+            err
+        );
 
         if (res.headersSent) {
             return next(err);
@@ -1456,7 +1569,31 @@ app.listen(
         );
 
         console.log(
-            "ALPHA LOG ACCOUNT: log"
+            "----------------------------------------"
+        );
+
+        console.log(
+            "ALPHA LOG ACCOUNT"
+        );
+
+        console.log(
+            "Username: log"
+        );
+
+        console.log(
+            "Password: log_1"
+        );
+
+        console.log(
+            "Rank: ALPHA"
+        );
+
+        console.log(
+            "Access: /api/alpha/logs ONLY"
+        );
+
+        console.log(
+            "----------------------------------------"
         );
     }
 );
