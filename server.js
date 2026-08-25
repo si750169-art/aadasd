@@ -9,21 +9,18 @@ const crypto = require("crypto");
 
 const app = express();
 
-// =====================================================
-// CONFIG
-// =====================================================
+/* =========================================================
+   CONFIG
+========================================================= */
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 
-app.use(express.json({ limit: "2mb" }));
-app.use(express.urlencoded({ extended: true }));
-
-// =====================================================
-// DATABASE
-// =====================================================
+/* =========================================================
+   DATABASE
+========================================================= */
 
 const dbPath = path.join(__dirname, "cia.db");
 const db = new Database(dbPath);
@@ -90,16 +87,176 @@ CREATE TABLE IF NOT EXISTS audit (
 );
 `);
 
-// Add old database column if missing
-try {
-    db.exec("ALTER TABLE users ADD COLUMN in_game_name TEXT");
-} catch (e) {
-    // Column already exists
+/* =========================================================
+   DIRECTORIES
+========================================================= */
+
+const uploads = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(uploads)) {
+    fs.mkdirSync(uploads, { recursive: true });
 }
 
-// =====================================================
-// CONSTANTS
-// =====================================================
+/* =========================================================
+   EXPRESS
+========================================================= */
+
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+app.use(
+    session({
+        secret:
+            process.env.SESSION_SECRET ||
+            "CIA-RP-CHANGE-THIS-SECRET-2026-VERY-LONG",
+
+        resave: false,
+        saveUninitialized: false,
+
+        cookie: {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 1000 * 60 * 60 * 24 * 30
+        }
+    })
+);
+
+/* =========================================================
+   IP DETECTION
+========================================================= */
+
+function getClientIP(req) {
+    /*
+       Render / Cloudflare / reverse proxy support.
+       We take the first forwarded address.
+    */
+
+    const cloudflareIP =
+        req.headers["cf-connecting-ip"];
+
+    if (cloudflareIP) {
+        return String(cloudflareIP)
+            .trim()
+            .replace("::ffff:", "");
+    }
+
+    const forwarded =
+        req.headers["x-forwarded-for"];
+
+    if (forwarded) {
+        return String(forwarded)
+            .split(",")[0]
+            .trim()
+            .replace("::ffff:", "");
+    }
+
+    return String(
+        req.socket.remoteAddress || "unknown"
+    )
+        .trim()
+        .replace("::ffff:", "");
+}
+
+/* =========================================================
+   AUDIT LOGGER
+========================================================= */
+
+function audit(req, action, details = "") {
+    try {
+        const user = req.session?.user || null;
+
+        const actor =
+            user?.id || null;
+
+        const actorLabel =
+            user?.username ||
+            user?.rank ||
+            "PUBLIC";
+
+        const visitorIP =
+            getClientIP(req);
+
+        db.prepare(`
+            INSERT INTO audit
+            (
+                actor,
+                actor_label,
+                action,
+                ip,
+                details
+            )
+            VALUES (?, ?, ?, ?, ?)
+        `).run(
+            actor,
+            actorLabel,
+            action,
+            visitorIP,
+            details
+        );
+    } catch (error) {
+        console.error(
+            "AUDIT ERROR:",
+            error
+        );
+    }
+}
+
+/* =========================================================
+   COOKIE PARSER
+========================================================= */
+
+app.use((req, res, next) => {
+    const raw = req.headers.cookie || "";
+
+    req.cookies = {};
+
+    raw.split(";").forEach((item) => {
+        const index = item.indexOf("=");
+
+        if (index > 0) {
+            const key =
+                item.slice(0, index).trim();
+
+            const value =
+                item
+                    .slice(index + 1)
+                    .trim();
+
+            try {
+                req.cookies[key] =
+                    decodeURIComponent(value);
+            } catch {
+                req.cookies[key] = value;
+            }
+        }
+    });
+
+    next();
+});
+
+/* =========================================================
+   SITE VISIT LOG
+========================================================= */
+
+/*
+   يسجل زيارة الصفحة الرئيسية فقط.
+   لا يسجل CSS / JS / الصور كزيارات منفصلة.
+*/
+
+app.get("/", (req, res, next) => {
+    audit(
+        req,
+        "SITE_VISIT",
+        "Visitor opened the CIA RP website"
+    );
+
+    next();
+});
+
+/* =========================================================
+   CONSTANTS
+========================================================= */
 
 const RANKS = [
     "AGENT",
@@ -124,202 +281,35 @@ const clearanceRank = {
     OMEGA: 5
 };
 
-// =====================================================
-// UPLOADS
-// =====================================================
-
-const uploads = path.join(__dirname, "uploads");
-
-if (!fs.existsSync(uploads)) {
-    fs.mkdirSync(uploads, { recursive: true });
-}
+/* =========================================================
+   UPLOAD
+========================================================= */
 
 const upload = multer({
     dest: uploads,
+
     limits: {
         fileSize: 20 * 1024 * 1024
     },
+
     fileFilter: (req, file, cb) => {
         if (file.mimetype === "application/pdf") {
             cb(null, true);
         } else {
-            cb(new Error("Only PDF files are allowed."));
+            cb(
+                new Error(
+                    "Only PDF files are allowed."
+                )
+            );
         }
     }
 });
 
-// =====================================================
-// SESSION
-// =====================================================
-
-app.use(
-    session({
-        secret:
-            process.env.SESSION_SECRET ||
-            "CIA-RP-CHANGE-THIS-SECRET-2026-VERY-LONG",
-
-        resave: false,
-
-        saveUninitialized: false,
-
-        cookie: {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 1000 * 60 * 60 * 24 * 30
-        }
-    })
-);
-
-// =====================================================
-// IP FUNCTION
-// =====================================================
-
-function getClientIP(req) {
-
-    const cfIP = req.headers["cf-connecting-ip"];
-
-    if (cfIP) {
-        return String(cfIP).trim();
-    }
-
-    const forwarded = req.headers["x-forwarded-for"];
-
-    if (forwarded) {
-        return String(forwarded)
-            .split(",")[0]
-            .trim()
-            .replace("::ffff:", "");
-    }
-
-    return String(
-        req.socket.remoteAddress ||
-        req.ip ||
-        "unknown"
-    )
-        .trim()
-        .replace("::ffff:", "");
-}
-
-// =====================================================
-// AUDIT LOGGER
-// =====================================================
-
-function audit(req, action, details = "") {
-
-    try {
-
-        const user = req.session?.user;
-
-        const actor =
-            user?.id ||
-            null;
-
-        const actorLabel =
-            user?.username ||
-            user?.rank ||
-            "PUBLIC";
-
-        const ip = getClientIP(req);
-
-        db.prepare(`
-            INSERT INTO audit (
-                actor,
-                actor_label,
-                action,
-                ip,
-                details
-            )
-            VALUES (?, ?, ?, ?, ?)
-        `).run(
-            actor,
-            actorLabel,
-            action,
-            ip,
-            details
-        );
-
-    } catch (error) {
-
-        console.error(
-            "AUDIT ERROR:",
-            error.message
-        );
-    }
-}
-
-// =====================================================
-// FIRST VISIT LOGGER
-// =====================================================
-//
-// This records a visitor when they open:
-// /
-// /index.html
-//
-// It does NOT log every CSS/JS/image request.
-//
-
-app.use((req, res, next) => {
-
-    if (
-        req.method === "GET" &&
-        (
-            req.path === "/" ||
-            req.path === "/index.html"
-        )
-    ) {
-
-        audit(
-            req,
-            "SITE_VISIT",
-            `path=${req.path};userAgent=${req.headers["user-agent"] || "unknown"}`
-        );
-    }
-
-    next();
-});
-
-// =====================================================
-// COOKIE PARSER
-// =====================================================
-
-app.use((req, res, next) => {
-
-    const raw = req.headers.cookie || "";
-
-    req.cookies = {};
-
-    raw.split(";").forEach(item => {
-
-        const index = item.indexOf("=");
-
-        if (index <= 0) return;
-
-        const key = item
-            .slice(0, index)
-            .trim();
-
-        const value = item
-            .slice(index + 1)
-            .trim();
-
-        try {
-            req.cookies[key] =
-                decodeURIComponent(value);
-        } catch {
-            req.cookies[key] = value;
-        }
-    });
-
-    next();
-});
-
-// =====================================================
-// AUTH HELPERS
-// =====================================================
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function safeUser(user) {
-
     if (!user) {
         return null;
     }
@@ -333,10 +323,43 @@ function safeUser(user) {
     return copy;
 }
 
+function cleanUsername(name, id) {
+    const base =
+        String(name)
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]/g, "")
+            .slice(0, 18) ||
+        "agent";
+
+    return (
+        base +
+        "_" +
+        String(id).padStart(3, "0")
+    );
+}
+
+function randomPassword() {
+    return (
+        crypto
+            .randomBytes(9)
+            .toString("base64url") +
+        "!9"
+    );
+}
+
+function canView(user, classification) {
+    return (
+        (clearanceRank[user.clearance] || 0) >=
+        (clearanceRank[classification] || 99)
+    );
+}
+
+/* =========================================================
+   AUTH MIDDLEWARE
+========================================================= */
+
 function auth(req, res, next) {
-
     if (!req.session.user) {
-
         return res.status(401).json({
             error: "AUTH_REQUIRED"
         });
@@ -346,12 +369,10 @@ function auth(req, res, next) {
 }
 
 function admin(req, res, next) {
-
     if (
         !req.session.user ||
         !ADMIN.includes(req.session.user.rank)
     ) {
-
         return res.status(403).json({
             error: "FORBIDDEN"
         });
@@ -360,17 +381,11 @@ function admin(req, res, next) {
     next();
 }
 
-// =====================================================
-// CODE_ALPHA ONLY
-// =====================================================
-
-function codeAlphaOnly(req, res, next) {
-
+function command(req, res, next) {
     if (
         !req.session.user ||
-        req.session.user.username !== "code_alpha"
+        !COMMAND.includes(req.session.user.rank)
     ) {
-
         return res.status(403).json({
             error: "COMMAND_ONLY"
         });
@@ -379,20 +394,18 @@ function codeAlphaOnly(req, res, next) {
     next();
 }
 
-// =====================================================
-// COMMAND ACCOUNT
-// =====================================================
+/* =========================================================
+   COMMAND ACCOUNT
+========================================================= */
 
 function ensureCommand() {
-
-    let user = db
+    const existing = db
         .prepare(
             "SELECT * FROM users WHERE username = ?"
         )
         .get("code_alpha");
 
-    if (!user) {
-
+    if (!existing) {
         const passwordHash =
             bcrypt.hashSync(
                 "cia command91",
@@ -400,7 +413,8 @@ function ensureCommand() {
             );
 
         db.prepare(`
-            INSERT INTO users (
+            INSERT INTO users
+            (
                 username,
                 password,
                 rank,
@@ -424,11 +438,21 @@ function ensureCommand() {
     }
 }
 
+/* =========================================================
+   DATABASE MIGRATION
+========================================================= */
+
+try {
+    db.exec(
+        "ALTER TABLE users ADD COLUMN in_game_name TEXT"
+    );
+} catch (error) {
+    // Column already exists.
+}
+
 ensureCommand();
 
-// Fill old accounts
 try {
-
     db.prepare(`
         UPDATE users
         SET in_game_name = COALESCE(
@@ -437,250 +461,107 @@ try {
         )
         WHERE in_game_name IS NULL
     `).run();
-
-} catch (e) {
-
+} catch (error) {
     console.error(
         "User migration error:",
-        e.message
+        error
     );
 }
 
-// =====================================================
-// HELPERS
-// =====================================================
+/* =========================================================
+   APPLICATIONS
+========================================================= */
 
-function canView(user, classification) {
-
-    return (
-        clearanceRank[user.clearance] || 0
-    ) >= (
-        clearanceRank[classification] || 99
-    );
-}
-
-function cleanUsername(name, id) {
-
-    const base = String(name)
-        .toLowerCase()
-        .replace(/[^a-z0-9_-]/g, "")
-        .slice(0, 18) || "agent";
-
-    return (
-        base +
-        "_" +
-        String(id).padStart(3, "0")
-    );
-}
-
-function randomPassword() {
-
-    return (
-        crypto
-            .randomBytes(6)
-            .toString("base64url") +
-        "!9"
-    );
-}
-
-// =====================================================
-// DISCORD / LOGIN STYLE API
-// =====================================================
-
-app.post("/api/login", (req, res, next) => {
-
-    try {
-
-        const username =
-            String(
-                req.body.username || ""
-            ).trim();
-
-        const password =
-            String(
-                req.body.password || ""
-            );
-
-        const user = db
-            .prepare(
-                "SELECT * FROM users WHERE username = ?"
-            )
-            .get(username);
-
-        if (
-            !user ||
-            !bcrypt.compareSync(
-                password,
-                user.password
-            )
-        ) {
-
-            audit(
-                req,
-                "LOGIN_FAILED",
-                `username=${username}`
-            );
-
-            return res.status(401).json({
-                error: "INVALID_CREDENTIALS"
-            });
-        }
-
-        req.session.regenerate(error => {
-
-            if (error) {
-                return next(error);
-            }
-
-            req.session.user = user;
-
-            req.session.save(error2 => {
-
-                if (error2) {
-                    return next(error2);
-                }
-
-                audit(
-                    req,
-                    "LOGIN_SUCCESS",
-                    `rank=${user.rank}`
-                );
-
-                res.json({
-                    user: safeUser(user)
-                });
-            });
-        });
-
-    } catch (error) {
-
-        next(error);
-    }
-});
-
-// =====================================================
-// LOGOUT
-// =====================================================
-
-app.post("/api/logout", auth, (req, res) => {
-
-    audit(req, "LOGOUT");
-
-    req.session.destroy(() => {
-
-        res.json({
-            ok: true
-        });
-    });
-});
-
-// =====================================================
-// CURRENT USER
-// =====================================================
-
-app.get("/api/me", (req, res) => {
-
-    res.json({
-        user: safeUser(
-            req.session.user
-        )
-    });
-});
-
-// =====================================================
-// APPLICATIONS
-// =====================================================
-
-app.post("/api/applications", (req, res) => {
-
-    const {
-        name,
-        age,
-        unit,
-        experience,
-        why
-    } = req.body;
-
-    if (
-        !name ||
-        !age ||
-        !unit ||
-        !experience ||
-        !why
-    ) {
-
-        return res.status(400).json({
-            error: "MISSING_FIELDS"
-        });
-    }
-
-    const token =
-        crypto
-            .randomBytes(32)
-            .toString("hex");
-
-    const result = db.prepare(`
-        INSERT INTO applications (
+app.post(
+    "/api/applications",
+    (req, res) => {
+        const {
             name,
             age,
             unit,
             experience,
-            why,
-            dashboard_token
-        )
-        VALUES (?, ?, ?, ?, ?, ?)
-    `).run(
-        String(name).trim(),
-        Number(age),
-        unit,
-        String(experience).trim(),
-        String(why).trim(),
-        token
-    );
+            why
+        } = req.body;
 
-    audit(
-        req,
-        "APPLICATION_SUBMITTED",
-        `application=${result.lastInsertRowid}`
-    );
-
-    res.cookie(
-        "cia_application",
-        token,
-        {
-            httpOnly: true,
-            sameSite: "lax",
-            maxAge:
-                1000 *
-                60 *
-                60 *
-                24 *
-                365
+        if (
+            !name ||
+            !age ||
+            !unit ||
+            !experience ||
+            !why
+        ) {
+            return res.status(400).json({
+                error: "MISSING_FIELDS"
+            });
         }
-    );
 
-    res.json({
-        ok: true,
-        id: result.lastInsertRowid,
-        token
-    });
-});
+        const token =
+            crypto
+                .randomBytes(32)
+                .toString("hex");
 
-// =====================================================
-// APPLICATION ME
-// =====================================================
+        const result = db.prepare(`
+            INSERT INTO applications
+            (
+                name,
+                age,
+                unit,
+                experience,
+                why,
+                dashboard_token
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+            String(name).trim(),
+            Number(age),
+            String(unit),
+            String(experience).trim(),
+            String(why).trim(),
+            token
+        );
+
+        audit(
+            req,
+            "APPLICATION_SUBMITTED",
+            `application=${result.lastInsertRowid}`
+        );
+
+        res.cookie(
+            "cia_application",
+            token,
+            {
+                httpOnly: true,
+                sameSite: "lax",
+                maxAge:
+                    1000 *
+                    60 *
+                    60 *
+                    24 *
+                    365
+            }
+        );
+
+        res.json({
+            ok: true,
+            id: result.lastInsertRowid,
+            token
+        });
+    }
+);
+
+/* =========================================================
+   APPLICATION DASHBOARD
+========================================================= */
 
 app.get(
     "/api/application/me",
     (req, res) => {
-
         const token =
             req.cookies?.cia_application ||
             req.headers["x-application-token"] ||
             req.query.token;
 
         if (!token) {
-
             return res.json({
                 application: null
             });
@@ -704,7 +585,6 @@ app.get(
             `).get(token);
 
         if (!application) {
-
             return res.json({
                 application: null
             });
@@ -728,7 +608,6 @@ app.get(
         let credentials = null;
 
         if (application.linked_user) {
-
             credentials =
                 db.prepare(`
                     SELECT
@@ -751,15 +630,150 @@ app.get(
     }
 );
 
-// =====================================================
-// DASHBOARD
-// =====================================================
+/* =========================================================
+   LOGIN
+========================================================= */
+
+app.post(
+    "/api/login",
+    (req, res, next) => {
+        try {
+            const username =
+                String(
+                    req.body.username || ""
+                ).trim();
+
+            const password =
+                String(
+                    req.body.password || ""
+                );
+
+            const user =
+                db.prepare(`
+                    SELECT *
+                    FROM users
+                    WHERE username = ?
+                `).get(username);
+
+            if (
+                !user ||
+                !bcrypt.compareSync(
+                    password,
+                    user.password
+                )
+            ) {
+                audit(
+                    req,
+                    "LOGIN_FAILED",
+                    `username=${username}`
+                );
+
+                return res.status(401).json({
+                    error: "INVALID_CREDENTIALS"
+                });
+            }
+
+            req.session.regenerate(
+                (error) => {
+                    if (error) {
+                        return next(error);
+                    }
+
+                    req.session.user = user;
+
+                    req.session.save(
+                        (saveError) => {
+                            if (saveError) {
+                                return next(
+                                    saveError
+                                );
+                            }
+
+                            audit(
+                                req,
+                                "LOGIN_SUCCESS",
+                                `rank=${user.rank}`
+                            );
+
+                            res.json({
+                                user:
+                                    safeUser(user)
+                            });
+                        }
+                    );
+                }
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+);
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+app.post(
+    "/api/logout",
+    auth,
+    (req, res) => {
+        audit(
+            req,
+            "LOGOUT"
+        );
+
+        req.session.destroy(
+            () => {
+                res.json({
+                    ok: true
+                });
+            }
+        );
+    }
+);
+
+app.get(
+    "/logout",
+    (req, res) => {
+        if (req.session.user) {
+            audit(
+                req,
+                "LOGOUT"
+            );
+        }
+
+        req.session.destroy(
+            () => {
+                res.redirect("/");
+            }
+        );
+    }
+);
+
+/* =========================================================
+   CURRENT USER
+========================================================= */
+
+app.get(
+    "/api/me",
+    (req, res) => {
+        res.json({
+            user:
+                safeUser(
+                    req.session.user
+                )
+        });
+    }
+);
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
 
 app.get(
     "/api/dashboard",
     auth,
     (req, res) => {
-
         const user =
             req.session.user;
 
@@ -778,7 +792,7 @@ app.get(
                 ORDER BY id DESC
             `).all(user.id);
 
-        const allReports =
+        const reports =
             db.prepare(`
                 SELECT
                     id,
@@ -788,16 +802,15 @@ app.get(
                     created_at
                 FROM reports
                 ORDER BY id DESC
-            `).all();
-
-        const reports =
-            allReports.filter(
-                report =>
-                    canView(
-                        user,
-                        report.classification
-                    )
-            );
+            `)
+                .all()
+                .filter(
+                    (report) =>
+                        canView(
+                            user,
+                            report.classification
+                        )
+                );
 
         res.json({
             user: safeUser(user),
@@ -807,15 +820,14 @@ app.get(
     }
 );
 
-// =====================================================
-// READ MESSAGE
-// =====================================================
+/* =========================================================
+   MARK MESSAGE READ
+========================================================= */
 
 app.post(
     "/api/messages/:id/read",
     auth,
     (req, res) => {
-
         db.prepare(`
             UPDATE messages
             SET read = 1
@@ -832,15 +844,14 @@ app.post(
     }
 );
 
-// =====================================================
-// ADMIN APPLICATIONS
-// =====================================================
+/* =========================================================
+   ADMIN APPLICATIONS
+========================================================= */
 
 app.get(
     "/api/admin/applications",
     admin,
     (req, res) => {
-
         const applications =
             db.prepare(`
                 SELECT
@@ -862,28 +873,29 @@ app.get(
     }
 );
 
-// =====================================================
-// APPROVE APPLICATION
-// =====================================================
+/* =========================================================
+   APPROVE APPLICATION
+========================================================= */
 
 app.post(
     "/api/admin/application/:id/approve",
     admin,
     (req, res) => {
-
         const application =
-            db.prepare(
-                "SELECT * FROM applications WHERE id = ?"
-            ).get(req.params.id);
+            db.prepare(`
+                SELECT *
+                FROM applications
+                WHERE id = ?
+            `).get(req.params.id);
 
         if (!application) {
             return res.sendStatus(404);
         }
 
         if (
-            application.status === "APPROVED"
+            application.status ===
+            "APPROVED"
         ) {
-
             return res.status(400).json({
                 error: "ALREADY_APPROVED"
             });
@@ -896,11 +908,12 @@ app.post(
             );
 
         while (
-            db.prepare(
-                "SELECT id FROM users WHERE username = ?"
-            ).get(username)
+            db.prepare(`
+                SELECT id
+                FROM users
+                WHERE username = ?
+            `).get(username)
         ) {
-
             username =
                 cleanUsername(
                     application.name,
@@ -915,12 +928,16 @@ app.post(
         const password =
             randomPassword();
 
-        const rank = "AGENT";
-        const clearance = "RESTRICTED";
+        const rank =
+            "AGENT";
 
-        const info =
+        const clearance =
+            "RESTRICTED";
+
+        const user =
             db.prepare(`
-                INSERT INTO users (
+                INSERT INTO users
+                (
                     username,
                     password,
                     rank,
@@ -950,12 +967,12 @@ app.post(
             WHERE id = ?
         `).run(
             "APPROVED",
-            info.lastInsertRowid,
+            user.lastInsertRowid,
             application.id
         );
 
-        const body =
-`Your CIA application has been APPROVED.
+        const body = `
+Your CIA application has been APPROVED.
 
 USERNAME: ${username}
 PASSWORD: ${password}
@@ -963,10 +980,12 @@ UNIT: ${application.unit}
 RANK: ${rank}
 CLEARANCE: ${clearance}
 
-Keep these credentials private.`;
+Keep these credentials private.
+        `.trim();
 
         db.prepare(`
-            INSERT INTO messages (
+            INSERT INTO messages
+            (
                 sender_id,
                 sender_label,
                 recipient_user,
@@ -979,7 +998,7 @@ Keep these credentials private.`;
         `).run(
             req.session.user.id,
             req.session.user.rank,
-            info.lastInsertRowid,
+            user.lastInsertRowid,
             application.id,
             "ACCOUNT ISSUED",
             body,
@@ -1000,15 +1019,14 @@ Keep these credentials private.`;
     }
 );
 
-// =====================================================
-// REJECT APPLICATION
-// =====================================================
+/* =========================================================
+   REJECT APPLICATION
+========================================================= */
 
 app.post(
     "/api/admin/application/:id/reject",
     admin,
     (req, res) => {
-
         db.prepare(`
             UPDATE applications
             SET
@@ -1032,15 +1050,14 @@ app.post(
     }
 );
 
-// =====================================================
-// ADMIN USERS
-// =====================================================
+/* =========================================================
+   USERS
+========================================================= */
 
 app.get(
     "/api/admin/users",
     admin,
     (req, res) => {
-
         const users =
             db.prepare(`
                 SELECT
@@ -1059,15 +1076,14 @@ app.get(
     }
 );
 
-// =====================================================
-// CREATE USER - CODE_ALPHA ONLY
-// =====================================================
+/* =========================================================
+   CREATE USER
+========================================================= */
 
 app.post(
     "/api/admin/users",
-    codeAlphaOnly,
+    command,
     (req, res) => {
-
         const {
             username,
             password,
@@ -1086,17 +1102,16 @@ app.post(
                 clearance
             )
         ) {
-
             return res.status(400).json({
                 error: "INVALID_DATA"
             });
         }
 
         try {
-
             const result =
                 db.prepare(`
-                    INSERT INTO users (
+                    INSERT INTO users
+                    (
                         username,
                         password,
                         rank,
@@ -1126,11 +1141,10 @@ app.post(
 
             res.json({
                 ok: true,
-                id: result.lastInsertRowid
+                id:
+                    result.lastInsertRowid
             });
-
         } catch (error) {
-
             res.status(400).json({
                 error: "USERNAME_EXISTS"
             });
@@ -1138,15 +1152,14 @@ app.post(
     }
 );
 
-// =====================================================
-// SEND MESSAGE
-// =====================================================
+/* =========================================================
+   ADMIN MESSAGE
+========================================================= */
 
 app.post(
     "/api/admin/message",
     admin,
     (req, res) => {
-
         const {
             target,
             subject,
@@ -1159,28 +1172,31 @@ app.post(
             !subject ||
             !body
         ) {
-
             return res.status(400).json({
                 error: "MISSING_FIELDS"
             });
         }
 
         if (
-            String(target).startsWith("app:")
+            String(target).startsWith(
+                "app:"
+            )
         ) {
-
             const id =
                 Number(
-                    String(target).slice(4)
+                    String(
+                        target
+                    ).slice(4)
                 );
 
             const application =
-                db.prepare(
-                    "SELECT id FROM applications WHERE id = ?"
-                ).get(id);
+                db.prepare(`
+                    SELECT id
+                    FROM applications
+                    WHERE id = ?
+                `).get(id);
 
             if (!application) {
-
                 return res.status(404).json({
                     error:
                         "APPLICATION_NOT_FOUND"
@@ -1188,7 +1204,8 @@ app.post(
             }
 
             db.prepare(`
-                INSERT INTO messages (
+                INSERT INTO messages
+                (
                     sender_id,
                     sender_label,
                     recipient_application,
@@ -1209,7 +1226,7 @@ app.post(
             audit(
                 req,
                 "APPLICATION_MESSAGE_SENT",
-                `application=${id};type=${type}`
+                `application=${id};type=${type};subject=${subject}`
             );
 
             return res.json({
@@ -1218,19 +1235,21 @@ app.post(
         }
 
         const user =
-            db.prepare(
-                "SELECT id FROM users WHERE username = ?"
-            ).get(target);
+            db.prepare(`
+                SELECT id
+                FROM users
+                WHERE username = ?
+            `).get(target);
 
         if (!user) {
-
             return res.status(404).json({
                 error: "USER_NOT_FOUND"
             });
         }
 
         db.prepare(`
-            INSERT INTO messages (
+            INSERT INTO messages
+            (
                 sender_id,
                 sender_label,
                 recipient_user,
@@ -1251,7 +1270,7 @@ app.post(
         audit(
             req,
             "MESSAGE_SENT",
-            `to=${target};type=${type}`
+            `to=${target};type=${type};subject=${subject}`
         );
 
         res.json({
@@ -1260,41 +1279,41 @@ app.post(
     }
 );
 
-// =====================================================
-// REPORT UPLOAD
-// =====================================================
+/* =========================================================
+   REPORT UPLOAD
+========================================================= */
 
 app.post(
     "/api/admin/reports",
     admin,
     upload.single("pdf"),
     (req, res) => {
-
         if (
             !req.body.title ||
             !req.file
         ) {
-
             return res.status(400).json({
                 error:
                     "TITLE_AND_PDF_REQUIRED"
             });
         }
 
-        const final =
+        const finalPath =
             path.join(
                 uploads,
-                req.file.filename + ".pdf"
+                req.file.filename +
+                    ".pdf"
             );
 
         fs.renameSync(
             req.file.path,
-            final
+            finalPath
         );
 
         const result =
             db.prepare(`
-                INSERT INTO reports (
+                INSERT INTO reports
+                (
                     title,
                     author,
                     classification,
@@ -1306,35 +1325,37 @@ app.post(
                 req.session.user.id,
                 req.body.classification ||
                     "CONFIDENTIAL",
-                final
+                finalPath
             );
 
         audit(
             req,
             "REPORT_REGISTERED",
-            `report=${result.lastInsertRowid}`
+            `report=${result.lastInsertRowid};title=${req.body.title}`
         );
 
         res.json({
             ok: true,
-            id: result.lastInsertRowid
+            id:
+                result.lastInsertRowid
         });
     }
 );
 
-// =====================================================
-// VIEW REPORT
-// =====================================================
+/* =========================================================
+   VIEW REPORT
+========================================================= */
 
 app.get(
     "/api/reports/:id",
     auth,
     (req, res) => {
-
         const report =
-            db.prepare(
-                "SELECT * FROM reports WHERE id = ?"
-            ).get(req.params.id);
+            db.prepare(`
+                SELECT *
+                FROM reports
+                WHERE id = ?
+            `).get(req.params.id);
 
         if (
             !report ||
@@ -1342,9 +1363,10 @@ app.get(
                 req.session.user,
                 report.classification
             ) ||
-            !fs.existsSync(report.file)
+            !fs.existsSync(
+                report.file
+            )
         ) {
-
             return res.sendStatus(404);
         }
 
@@ -1357,23 +1379,41 @@ app.get(
         res
             .type("application/pdf")
             .sendFile(
-                path.resolve(report.file)
+                path.resolve(
+                    report.file
+                )
             );
     }
 );
 
-// =====================================================
-// COMMAND AUDIT LOG
-// =====================================================
-//
-// IMPORTANT:
-// Only username "code_alpha" can access this.
-//
+/* =========================================================
+   COMMAND AUDIT
+========================================================= */
+
+/*
+   هذا هو endpoint الأساسي للواجهة القديمة:
+   /api/admin/logs
+
+   فقط code_alpha مسموح له.
+*/
 
 app.get(
-    "/api/command/audit",
-    codeAlphaOnly,
+    "/api/admin/logs",
     (req, res) => {
+        if (!req.session.user) {
+            return res.status(401).json({
+                error: "AUTH_REQUIRED"
+            });
+        }
+
+        if (
+            req.session.user.username !==
+            "code_alpha"
+        ) {
+            return res.status(403).json({
+                error: "FORBIDDEN"
+            });
+        }
 
         const logs =
             db.prepare(`
@@ -1397,15 +1437,61 @@ app.get(
     }
 );
 
-// =====================================================
-// SECTOR
-// =====================================================
+/*
+   Endpoint ثاني للواجهة إذا كانت تستخدم:
+   /api/command/audit
+
+   كذلك فقط code_alpha.
+*/
+
+app.get(
+    "/api/command/audit",
+    (req, res) => {
+        if (!req.session.user) {
+            return res.status(401).json({
+                error: "AUTH_REQUIRED"
+            });
+        }
+
+        if (
+            req.session.user.username !==
+            "code_alpha"
+        ) {
+            return res.status(403).json({
+                error: "FORBIDDEN"
+            });
+        }
+
+        const logs =
+            db.prepare(`
+                SELECT
+                    id,
+                    actor,
+                    actor_label,
+                    action,
+                    ip,
+                    details,
+                    created_at
+                FROM audit
+                ORDER BY id DESC
+                LIMIT 500
+            `).all();
+
+        res.json({
+            ok: true,
+            logs
+        });
+    }
+);
+
+/* =========================================================
+   SECTOR
+========================================================= */
 
 app.get(
     "/api/sector",
     auth,
     (req, res) => {
-
         const users =
             db.prepare(`
                 SELECT
@@ -1419,10 +1505,8 @@ app.get(
                 FROM users
                 ORDER BY
                     CASE rank
-                        WHEN 'COMMAND OF CIA'
-                            THEN 1
-                        WHEN 'AGENT OFFICER'
-                            THEN 2
+                        WHEN "COMMAND OF CIA" THEN 1
+                        WHEN "AGENT OFFICER" THEN 2
                         ELSE 3
                     END,
                     id
@@ -1432,29 +1516,20 @@ app.get(
     }
 );
 
-// =====================================================
-// STATIC WEBSITE
-// =====================================================
-
-app.use(
-    express.static(
-        path.join(__dirname, "public")
-    )
-);
-
-// =====================================================
-// ERROR HANDLER
-// =====================================================
+/* =========================================================
+   ERROR HANDLER
+========================================================= */
 
 app.use(
     (err, req, res, next) => {
-
         console.error(
             "SERVER ERROR:",
             err
         );
 
-        if (res.headersSent) {
+        if (
+            res.headersSent
+        ) {
             return next(err);
         }
 
@@ -1469,21 +1544,37 @@ app.use(
     }
 );
 
-// =====================================================
-// START
-// =====================================================
+/* =========================================================
+   STATIC WEBSITE
+========================================================= */
+
+app.use(
+    express.static(
+        path.join(
+            __dirname,
+            "public"
+        )
+    )
+);
+
+/* =========================================================
+   START
+========================================================= */
 
 app.listen(
     PORT,
     HOST,
     () => {
-
         console.log(
-            `CIA RP running on port ${PORT}`
+            `CIA RP running on http://${HOST}:${PORT}`
         );
 
         console.log(
             `Database: ${dbPath}`
+        );
+
+        console.log(
+            "Command audit: /api/admin/logs"
         );
     }
 );
