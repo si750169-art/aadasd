@@ -206,8 +206,7 @@ width:100%;
 border-collapse:collapse
 }
 
-.table th,
-.table td{
+.table th,.table td{
 border-bottom:1px solid #17242d;
 padding:11px;
 text-align:left;
@@ -226,6 +225,30 @@ background:#120b0d;
 padding:12px;
 color:#aeb9bf;
 font-size:12px
+}
+
+.toast{
+position:fixed;
+left:22px;
+bottom:22px;
+z-index:9999;
+min-width:280px;
+max-width:420px;
+background:#0a1117;
+border:1px solid #33434e;
+color:#e8eef2;
+padding:13px 15px;
+border-radius:6px;
+box-shadow:0 15px 45px #000;
+transform:translateY(20px);
+opacity:0;
+pointer-events:none;
+transition:.2s
+}
+
+.toast.show{
+transform:translateY(0);
+opacity:1
 }
 
 .modal{
@@ -332,161 +355,63 @@ background:#16212a;
 color:#fff
 }
 
-.toast{
-position:fixed;
-left:22px;
-bottom:22px;
-z-index:9999;
-min-width:280px;
-max-width:420px;
-background:#0a1117;
-border:1px solid #33434e;
-color:#e8eef2;
-padding:13px 15px;
-border-radius:6px;
-box-shadow:0 15px 45px #000;
-transform:translateY(20px);
-opacity:0;
-pointer-events:none;
-transition:.2s
-}
-
-.toast.show{
-transform:translateY(0);
-opacity:1
-}
-
-.rtl{
-direction:rtl
-}
-
-.rtl .top{
-direction:rtl
-}
-
-.rtl .table{
-text-align:right
-}
-
-.rtl .field{
-text-align:right
-}
-
-/* =====================================================
-   ALPHA LOG TERMINAL
-===================================================== */
-
-.alphaPage{
-min-height:calc(100vh - 90px);
-padding-top:25px
-}
-
-.alphaHeader{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:15px;
-padding:18px;
-background:#070d12;
-border:1px solid #51383a;
-border-radius:7px;
-margin-bottom:14px
-}
-
-.alphaTitle{
-font-family:Consolas,monospace;
-font-weight:900;
-letter-spacing:3px;
-color:#ff4b55
-}
-
-.alphaSubtitle{
-font:11px Consolas;
-color:#71808a;
-margin-top:5px
-}
-
-.alphaStatus{
-display:flex;
-align-items:center;
-gap:8px
-}
-
-.statusDot{
-width:8px;
-height:8px;
-border-radius:50%;
-background:#35d39c;
-box-shadow:0 0 12px #35d39c
-}
-
-.alphaTools{
+.log-header{
 display:flex;
 justify-content:space-between;
 align-items:center;
 gap:10px;
-flex-wrap:wrap;
-margin-bottom:14px
+margin-bottom:15px
 }
 
-.alphaSearch{
-max-width:420px;
-flex:1
+.log-title{
+font-size:20px;
+font-weight:bold
 }
 
-.logTable{
+.log-table{
 width:100%;
 border-collapse:collapse
 }
 
-.logTable th{
+.log-table th{
+color:#687780;
 font:10px Consolas;
-color:#63727b;
 text-align:left;
-padding:12px;
-border-bottom:1px solid #25333c
+padding:10px;
+border-bottom:1px solid #263640
 }
 
-.logTable td{
-font:12px Consolas;
-padding:12px;
-border-bottom:1px solid #142129;
+.log-table td{
+padding:10px;
+font-size:11px;
+border-bottom:1px solid #17242d;
 vertical-align:top
 }
 
-.logTable tr:hover{
-background:#0b151c
+.log-action{
+color:#e5b84c;
+font-family:Consolas,monospace
 }
 
-.logId{
-color:#667984
+.log-ip{
+color:#48dfa9;
+font-family:Consolas,monospace
 }
 
-.logAction{
-color:#e5b84c
-}
-
-.logActor{
-color:#35d39c
-}
-
-.logIp{
-color:#d7a3a5
-}
-
-.logDetails{
-color:#9ba8af;
-white-space:pre-wrap;
+.log-details{
+color:#aab5bb;
 word-break:break-word
 }
 
-.alphaOnly{
-border:1px solid #55272b;
-background:#11090b;
-padding:10px 12px;
-border-radius:5px;
-font:10px Consolas;
-color:#ff7077
+.copybox{
+display:flex;
+gap:7px;
+align-items:center;
+margin-top:12px
+}
+
+.copybox .input{
+font-family:Consolas,monospace
 }
 
 @media(max-width:800px){
@@ -506,22 +431,14 @@ font-size:26px
 font-size:11px
 }
 
-.table th,
-.table td{
+.table th,.table td{
 padding:8px
 }
 
-.alphaHeader{
-align-items:flex-start;
-flex-direction:column
-}
-
-.logTable{
-min-width:900px
-}
-
-.logScroll{
-overflow:auto
+.log-table{
+display:block;
+overflow-x:auto;
+white-space:nowrap
 }
 }
 </style>
@@ -531,10 +448,6 @@ overflow:auto
 
 <div class="wrap">
 
-<!-- =====================================================
-     TOP
-===================================================== -->
-
 <div class="top">
 
 <div>
@@ -542,24 +455,23 @@ overflow:auto
 <div class="muted mono">INTERNAL ROLEPLAY NETWORK</div>
 </div>
 
-<div id="topActions" style="display:flex;gap:8px;align-items:center">
+<div style="display:flex;gap:8px;align-items:center">
 
 <div class="langbox">
 <button id="langEN" class="lang active" onclick="setLang('en')">EN</button>
 <button id="langAR" class="lang" onclick="setLang('ar')">عربي</button>
 </div>
 
+<div id="topActions">
 <button class="btn" onclick="loginPage()">LOGIN</button>
 <button class="btn red" onclick="applyPage()">APPLY</button>
-
 </div>
 
 </div>
+</div>
 
 
-<!-- =====================================================
-     HOME
-===================================================== -->
+<!-- HOME -->
 
 <div id="home">
 
@@ -602,8 +514,8 @@ Your application receives a private persistent dashboard.
 <span class="tag green">PERSISTENT</span>
 <h3>Private Dashboard</h3>
 <p class="muted">
-Return later from the same browser and your application
-status and messages remain.
+Return later from the same browser and your application status
+and messages remain.
 </p>
 </div>
 
@@ -620,9 +532,7 @@ Authorized personnel can register real PDF intelligence reports.
 </div>
 
 
-<!-- =====================================================
-     AUTH
-===================================================== -->
+<!-- AUTH -->
 
 <div id="auth" class="panel login hidden">
 
@@ -635,9 +545,7 @@ SECURE LOGIN
 </div>
 
 
-<!-- =====================================================
-     APPLICATION DASHBOARD
-===================================================== -->
+<!-- APPLICATION DASHBOARD -->
 
 <div id="appDash" class="hidden">
 
@@ -654,6 +562,8 @@ APPLICATION
 <div id="appStatus"></div>
 
 <p id="appMeta"></p>
+
+<div id="applicationIdBox"></div>
 
 </div>
 
@@ -678,9 +588,7 @@ HOME
 </div>
 
 
-<!-- =====================================================
-     NORMAL USER DASHBOARD
-===================================================== -->
+<!-- NORMAL USER DASHBOARD -->
 
 <div id="userDash" class="hidden">
 
@@ -698,27 +606,32 @@ PERSONNEL DASHBOARD
 
 <div class="tabs">
 
-<button class="btn" onclick="userTab('messages')">
+<button id="messagesBtn" class="btn" onclick="userTab('messages')">
 MESSAGES
 </button>
 
-<button class="btn" onclick="userTab('reports')">
+<button id="reportsBtn" class="btn" onclick="userTab('reports')">
 REPORTS
 </button>
 
-<button class="btn" onclick="userTab('sector')">
+<button id="sectorBtn" class="btn" onclick="userTab('sector')">
 SECTOR DIRECTORY
 </button>
 
-<button class="btn" onclick="userTab('profile')">
+<button id="profileBtn" class="btn" onclick="userTab('profile')">
 PERSONNEL FILE
 </button>
 
-<button
-id="adminBtn"
+<button id="adminBtn"
 class="btn red hidden"
 onclick="userTab('admin')">
 ADMIN COMMAND
+</button>
+
+<button id="logBtn"
+class="btn amber hidden"
+onclick="userTab('logs')">
+LOGS
 </button>
 
 <button class="btn" onclick="logout()">
@@ -731,100 +644,10 @@ LOGOUT
 
 </div>
 
-
-<!-- =====================================================
-     ALPHA LOG PAGE
-===================================================== -->
-
-<div id="alphaPage" class="alphaPage hidden">
-
-<div class="alphaHeader">
-
-<div>
-
-<div class="alphaTitle">
-ALPHA // LOG TERMINAL
-</div>
-
-<div class="alphaSubtitle">
-RESTRICTED AUDIT ACCESS // CODE ALPHA
-</div>
-
-</div>
-
-<div class="alphaStatus">
-
-<div class="statusDot"></div>
-
-<span class="tag red">
-ALPHA ONLY
-</span>
-
-<button class="btn small" onclick="loadAlphaLogs()">
-REFRESH
-</button>
-
-<button class="btn small" onclick="logout()">
-LOGOUT
-</button>
-
-</div>
-
 </div>
 
 
-<div class="alphaTools">
-
-<div class="alphaOnly">
-ACCESS LEVEL: ALPHA // AUDIT RECORDS
-</div>
-
-<input
-id="logSearch"
-class="input alphaSearch"
-placeholder="SEARCH LOGS..."
-oninput="filterLogs()">
-
-</div>
-
-
-<div class="panel">
-
-<div id="alphaLogStatus" class="muted mono">
-CONNECTING TO LOG SERVER...
-</div>
-
-<div class="logScroll">
-
-<table class="logTable">
-
-<thead>
-
-<tr>
-<th>ID</th>
-<th>TIME</th>
-<th>ACTOR</th>
-<th>ACTION</th>
-<th>IP</th>
-<th>DETAILS</th>
-</tr>
-
-</thead>
-
-<tbody id="alphaLogs"></tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     PDF MODAL
-===================================================== -->
+<!-- PDF -->
 
 <div id="pdfModal" class="modal hidden">
 
@@ -851,95 +674,116 @@ CLOSE
 
 <div id="toast" class="toast"></div>
 
-</div>
-
 
 <script>
 
-const $ = id => document.getElementById(id);
+const $=id=>document.getElementById(id);
 
-let me = null;
-let udata = null;
-let appdata = null;
-let alphaLogs = [];
+let me=null;
+let udata=null;
+let appdata=null;
 
-const adminRanks = [
+const adminRanks=[
 "AGENT OFFICER",
 "COMMAND OF CIA"
 ];
 
-const ALPHA_USERNAME = "log";
-const ALPHA_RANK = "ALPHA";
 
-
-/* =====================================================
-   HELPERS
-===================================================== */
+/*
+========================================================
+ESCAPE
+========================================================
+*/
 
 function esc(v){
 
-return String(v ?? "")
-.replace(/[&<>"']/g,m=>({
-"&":"&amp;",
-"<":"&lt;",
-">":"&gt;",
-'"':"&quot;",
-"'":"&#39;"
-}[m]));
+return String(v??'').replace(
+/[&<>"']/g,
+m=>({
+'&':'&amp;',
+'<':'&lt;',
+'>':'&gt;',
+'"':'&quot;',
+"'":'&#39;'
+}[m])
+);
 
 }
 
 
+/*
+========================================================
+TOAST
+========================================================
+*/
+
 function toast(t){
 
-$("toast").textContent = t;
+$('toast').textContent=t;
 
-$("toast").classList.add("show");
+$('toast').classList.add('show');
 
 setTimeout(()=>{
-$("toast").classList.remove("show");
+$('toast').classList.remove('show');
 },3000);
 
 }
 
 
+/*
+========================================================
+HOME
+========================================================
+*/
+
 function base(){
 
 [
-"home",
-"auth",
-"appDash",
-"userDash",
-"alphaPage"
-].forEach(x=>$(x).classList.add("hidden"));
+'home',
+'auth',
+'appDash',
+'userDash'
+].forEach(x=>$(x).classList.add('hidden'));
 
-$("topActions").classList.remove("hidden");
+$('topActions').classList.remove('hidden');
 
-$("home").classList.remove("hidden");
+$('home').classList.remove('hidden');
 
 }
 
 
-/* =====================================================
-   LOGIN PAGE
-===================================================== */
+/*
+========================================================
+BACK HOME
+========================================================
+*/
+
+function backHome(){
+
+location.reload();
+
+}
+
+
+/*
+========================================================
+LOGIN PAGE
+========================================================
+*/
 
 function loginPage(){
 
-$("home").classList.add("hidden");
-$("appDash").classList.add("hidden");
-$("userDash").classList.add("hidden");
-$("alphaPage").classList.add("hidden");
+$('home').classList.add('hidden');
+$('appDash').classList.add('hidden');
+$('userDash').classList.add('hidden');
+$('auth').classList.remove('hidden');
 
-$("auth").classList.remove("hidden");
+$('authTitle').textContent=
+lang==='ar'
+?'تسجيل دخول الأفراد'
+:'SECURE PERSONNEL LOGIN';
 
-$("authTitle").textContent =
-lang === "ar"
-? "تسجيل دخول الأفراد"
-: "SECURE PERSONNEL LOGIN";
-
-
-$("authBody").innerHTML = `
+$('authBody').innerHTML=`
 
 <div class="field">
 
@@ -948,7 +792,8 @@ $("authBody").innerHTML = `
 <input
 id="lu"
 class="input"
-autocomplete="username">
+autocomplete="username"
+>
 
 </div>
 
@@ -961,53 +806,63 @@ autocomplete="username">
 id="lp"
 type="password"
 class="input"
-autocomplete="current-password">
+autocomplete="current-password"
+>
 
 </div>
 
 
-<button class="btn red" onclick="login()">
+<button
+class="btn red"
+onclick="login()"
+>
 AUTHENTICATE
 </button>
 
-<button class="btn" onclick="base()">
+<button
+class="btn"
+onclick="base()"
+>
 BACK
 </button>
 
 `;
 
-
-$("lp").addEventListener(
-"keydown",
+$('lp').addEventListener(
+'keydown',
 e=>{
-if(e.key==="Enter") login();
+if(e.key==='Enter') login();
 }
 );
 
-$("lu").focus();
+$('lu').focus();
 
 }
 
 
-/* =====================================================
-   APPLY
-===================================================== */
+/*
+========================================================
+APPLICATION PAGE
+========================================================
+*/
 
 function applyPage(){
 
-$("home").classList.add("hidden");
-$("auth").classList.remove("hidden");
+$('home').classList.add('hidden');
 
-$("authTitle").textContent =
-"CIA APPLICATION // ENGLISH NAME";
+$('auth').classList.remove('hidden');
 
+$('authTitle').textContent=
+'CIA APPLICATION // ENGLISH NAME';
 
-$("authBody").innerHTML = `
+$('authBody').innerHTML=`
 
 <div class="notice">
+
 Use your exact in-game name in English.
 After submission, this browser receives a private
 application dashboard.
+
 </div>
 
 
@@ -1020,7 +875,8 @@ application dashboard.
 <input
 id="an"
 class="input"
-placeholder="John Carter">
+placeholder="John Carter"
+>
 
 </div>
 
@@ -1032,7 +888,8 @@ placeholder="John Carter">
 <input
 id="aa"
 type="number"
-class="input">
+class="input"
+>
 
 </div>
 
@@ -1043,11 +900,25 @@ class="input">
 
 <select id="au" class="input">
 
-<option>Intelligence Operations</option>
-<option>Field Operations</option>
-<option>Cyber Intelligence</option>
-<option>Internal Affairs</option>
-<option>Protective Operations</option>
+<option>
+Intelligence Operations
+</option>
+
+<option>
+Field Operations
+</option>
+
+<option>
+Cyber Intelligence
+</option>
+
+<option>
+Internal Affairs
+</option>
+
+<option>
+Protective Operations
+</option>
 
 </select>
 
@@ -1058,7 +929,10 @@ class="input">
 
 <label>EXPERIENCE</label>
 
-<input id="ae" class="input">
+<input
+id="ae"
+class="input"
+>
 
 </div>
 
@@ -1072,16 +946,23 @@ class="input">
 <textarea
 id="aw"
 class="input"
-rows="5"></textarea>
+rows="5"
+></textarea>
 
 </div>
 
 
-<button class="btn red" onclick="apply()">
+<button
+class="btn red"
+onclick="apply()"
+>
 SUBMIT APPLICATION
 </button>
 
-<button class="btn" onclick="base()">
+<button
+class="btn"
+onclick="base()"
+>
 BACK
 </button>
 
@@ -1090,32 +971,38 @@ BACK
 }
 
 
-/* =====================================================
-   APPLICATION SUBMIT
-===================================================== */
+/*
+========================================================
+SUBMIT APPLICATION
+========================================================
+*/
 
 async function apply(){
 
-let b = {
+let b={
 
-name:$("an").value.trim(),
-age:$("aa").value,
-unit:$("au").value,
-experience:$("ae").value.trim(),
-why:$("aw").value.trim()
+name:$('an').value.trim(),
+
+age:$('aa').value,
+
+unit:$('au').value,
+
+experience:$('ae').value.trim(),
+
+why:$('aw').value.trim()
 
 };
 
 
 if(
-!b.name ||
-!b.age ||
-!b.experience ||
+!b.name||
+!b.age||
+!b.experience||
 !b.why
 ){
 
 return toast(
-"Complete every field."
+'Complete every field.'
 );
 
 }
@@ -1123,47 +1010,144 @@ return toast(
 
 try{
 
-let r = await fetch(
-"/api/applications",
+let r=await fetch(
+'/api/applications',
 {
-method:"POST",
+method:'POST',
 headers:{
-"Content-Type":"application/json"
+'Content-Type':'application/json'
 },
+credentials:'same-origin',
 body:JSON.stringify(b)
 }
 );
 
-let j = await r.json();
+
+let j=await r.json();
+
 
 if(!r.ok){
 
 return toast(
-"Application could not be saved."
+'Application could not be saved.'
 );
 
 }
 
 
-document.cookie =
-"cia_application="+
+/*
+SAVE APPLICATION TOKEN
+*/
+
+document.cookie=
+'cia_application='+
 encodeURIComponent(j.token)+
-"; max-age=31536000; path=/; samesite=lax";
+'; max-age=31536000; path=/; samesite=lax';
+
+
+/*
+SHOW APPLICATION ID
+*/
+
+$('auth').classList.add('hidden');
+$('appDash').classList.remove('hidden');
+$('topActions').classList.add('hidden');
+
+$('appNameTitle').textContent=b.name;
+
+$('appStatus').innerHTML=`
+<span class="tag amber">
+PENDING
+</span>
+`;
+
+$('appMeta').textContent=
+'Application #'+
+j.id+
+' // '+b.unit;
+
+
+$('applicationIdBox').innerHTML=`
+
+<div class="card copybox">
+
+<input
+id="applicationIdInput"
+class="input"
+readonly
+value="${esc(j.id)}"
+>
+
+<button
+class="btn green"
+onclick="copyApplicationId()"
+>
+COPY ID
+</button>
+
+</div>
+
+<div class="muted mono" style="margin-top:7px">
+KEEP THIS APPLICATION ID FOR REFERENCE.
+</div>
+
+`;
 
 
 toast(
-"Application registered."
+'Application submitted successfully.'
 );
+
 
 setTimeout(
 loadApplication,
-500
+600
+);
+
+
+}catch(e){
+
+console.error(e);
+
+toast(
+'SERVER CONNECTION ERROR'
+);
+
+}
+
+}
+
+
+/*
+========================================================
+COPY APPLICATION ID
+========================================================
+*/
+
+async function copyApplicationId(){
+
+const input=$('applicationIdInput');
+
+if(!input)return;
+
+try{
+
+await navigator.clipboard.writeText(
+input.value
+);
+
+toast(
+'Application ID copied.'
 );
 
 }catch{
 
+input.select();
+
+document.execCommand('copy');
+
 toast(
-"Server connection failed."
+'Application ID copied.'
 );
 
 }
@@ -1171,17 +1155,24 @@ toast(
 }
 
 
-/* =====================================================
-   LOAD APPLICATION
-===================================================== */
+/*
+========================================================
+LOAD APPLICATION
+========================================================
+*/
 
 async function loadApplication(){
 
-let r =
-await fetch("/api/application/me");
+try{
 
-let j =
-await r.json();
+let r=await fetch(
+'/api/application/me',
+{
+credentials:'same-origin'
+}
+);
+
+let j=await r.json();
 
 if(!j.application){
 
@@ -1189,56 +1180,93 @@ return base();
 
 }
 
-appdata = j;
+appdata=j;
 
-$("auth").classList.add("hidden");
-$("home").classList.add("hidden");
-$("userDash").classList.add("hidden");
-$("alphaPage").classList.add("hidden");
+$('auth').classList.add('hidden');
+$('home').classList.add('hidden');
+$('userDash').classList.add('hidden');
+$('appDash').classList.remove('hidden');
+$('topActions').classList.add('hidden');
 
-$("appDash").classList.remove("hidden");
-
-$("topActions").classList.add("hidden");
-
-$("appNameTitle").textContent =
+$('appNameTitle').textContent=
 j.application.name;
 
-$("appStatus").innerHTML =
-`<span class="tag ${
-j.application.status==="APPROVED"
-?"green":
-j.application.status==="REJECTED"
-?"red":
-"amber"
+$('appStatus').innerHTML=
+`
+<span class="tag ${
+j.application.status==='APPROVED'
+?'green'
+:j.application.status==='REJECTED'
+?'red'
+:'amber'
 }">
 ${esc(j.application.status)}
-</span>`;
+</span>
+`;
 
-$("appMeta").textContent =
-"Application #"+
+$('appMeta').textContent=
+'Application #'+
 j.application.id+
-" // "+
+' // '+
 j.application.unit+
-" // submitted "+
+' // submitted '+
 j.application.created_at;
 
-appTab("messages");
+
+$('applicationIdBox').innerHTML=`
+
+<div class="card copybox">
+
+<input
+id="applicationIdInput"
+class="input"
+readonly
+value="${esc(j.application.id)}"
+>
+
+<button
+class="btn green"
+onclick="copyApplicationId()"
+>
+COPY ID
+</button>
+
+</div>
+
+`;
+
+
+appTab('messages');
+
+}catch(e){
+
+console.error(e);
+
+toast(
+'SERVER CONNECTION ERROR'
+);
+
+}
 
 }
 
 
-/* =====================================================
-   APPLICATION TABS
-===================================================== */
+/*
+========================================================
+APPLICATION TABS
+========================================================
+*/
 
 function appTab(t){
 
-if(t==="messages"){
+if(!appdata)return;
 
-let a =
-appdata.messages || [];
 
-$("appContent").innerHTML = `
+if(t==='messages'){
+
+let a=appdata.messages||[];
+
+$('appContent').innerHTML=`
 
 <div class="panel">
 
@@ -1250,21 +1278,28 @@ a.length
 a.map(m=>`
 
 <div class="card message ${
-!m.read ? "unread" : ""
+!m.read?'unread':''
 }">
 
-<b>${esc(m.subject)}</b>
+<b>
+${esc(m.subject)}
+</b>
 
 <div class="muted mono">
+
 ${esc(m.sender_label)}
-// ${esc(m.created_at)}
-</div>
-
-<p>${esc(m.body)}</p>
+//
+${esc(m.created_at)}
 
 </div>
 
-`).join("")
+<p>
+${esc(m.body)}
+</p>
+
+</div>
+
+`).join('')
 :
 '<div class="empty">No messages yet.</div>'
 }
@@ -1275,37 +1310,56 @@ ${esc(m.sender_label)}
 
 }else{
 
-$("appContent").innerHTML = `
+$('appContent').innerHTML=`
 
 <div class="panel">
 
-<h2>APPLICATION FILE</h2>
+<h2>
+APPLICATION FILE
+</h2>
 
 <table class="table">
 
 <tr>
+<th>APPLICATION ID</th>
+<td class="mono">
+${esc(appdata.application.id)}
+</td>
+</tr>
+
+<tr>
 <th>IN-GAME NAME</th>
-<td>${esc(appdata.application.name)}</td>
+<td>
+${esc(appdata.application.name)}
+</td>
 </tr>
 
 <tr>
 <th>UNIT</th>
-<td>${esc(appdata.application.unit)}</td>
+<td>
+${esc(appdata.application.unit)}
+</td>
 </tr>
 
 <tr>
 <th>STATUS</th>
-<td>${esc(appdata.application.status)}</td>
+<td>
+${esc(appdata.application.status)}
+</td>
 </tr>
 
 <tr>
 <th>EXPERIENCE</th>
-<td>${esc(appdata.application.experience)}</td>
+<td>
+${esc(appdata.application.experience)}
+</td>
 </tr>
 
 <tr>
 <th>WHY CIA</th>
-<td>${esc(appdata.application.why)}</td>
+<td>
+${esc(appdata.application.why)}
+</td>
 </tr>
 
 </table>
@@ -1314,14 +1368,19 @@ ${
 appdata.credentials
 ?
 `
-<div class="notice" style="margin-top:14px">
+<div
+class="notice"
+style="margin-top:14px"
+>
 
 ACCOUNT ISSUED
 
 <br><br>
 
 USERNAME:
-<b>${esc(appdata.credentials.username)}</b>
+<b>
+${esc(appdata.credentials.username)}
+</b>
 
 <br>
 
@@ -1335,7 +1394,7 @@ ${esc(appdata.credentials.unit)}
 
 </div>
 `
-:""
+:''
 }
 
 </div>
@@ -1347,83 +1406,61 @@ ${esc(appdata.credentials.unit)}
 }
 
 
-/* =====================================================
-   LOGIN
-===================================================== */
+/*
+========================================================
+LOGIN
+========================================================
+*/
 
 async function login(){
 
-if(location.protocol==="file:"){
+if(location.protocol==='file:'){
 
 return toast(
-"Run the Node server with npm start."
+'Run the Node server with npm start, then open http://SERVER-IP:3000.'
 );
 
 }
 
 
-let username =
-$("lu").value.trim();
-
-let password =
-$("lp").value;
-
-
 try{
 
-let r =
-await fetch(
-"/api/login",
+let r=await fetch(
+'/api/login',
 {
-method:"POST",
+method:'POST',
 headers:{
-"Content-Type":"application/json"
+'Content-Type':'application/json'
 },
-credentials:"same-origin",
+credentials:'same-origin',
 body:JSON.stringify({
-username,
-password
+
+username:$('lu').value.trim(),
+
+password:$('lp').value
+
 })
 }
 );
 
 
-let j =
-await r.json();
+let j=await r.json();
 
 
 if(!r.ok){
 
 return toast(
-j.error==="INVALID_CREDENTIALS"
+j.error==='INVALID_CREDENTIALS'
 ?
-"Invalid username or password."
+'Invalid username or password.'
 :
-"Login failed."
+'Login failed.'
 );
 
 }
 
 
-me = j.user;
-
-
-/*
- * أهم جزء:
- * حساب log لا يدخل Dashboard العادي.
- */
-
-if(
-me.username === ALPHA_USERNAME &&
-me.rank === ALPHA_RANK
-){
-
-enterAlpha();
-
-return;
-
-}
-
+me=j.user;
 
 enterUser();
 
@@ -1433,7 +1470,7 @@ enterUser();
 console.error(e);
 
 toast(
-"LOG SERVER CONNECTION ERROR"
+'SERVER CONNECTION ERROR'
 );
 
 }
@@ -1441,314 +1478,136 @@ toast(
 }
 
 
-/* =====================================================
-   ALPHA PAGE
-===================================================== */
-
-function enterAlpha(){
-
-$("auth").classList.add("hidden");
-$("home").classList.add("hidden");
-$("appDash").classList.add("hidden");
-$("userDash").classList.add("hidden");
-
-$("alphaPage").classList.remove("hidden");
-
-$("topActions").classList.add("hidden");
-
-loadAlphaLogs();
-
-}
-
-
-/* =====================================================
-   LOAD ALPHA LOGS
-===================================================== */
-
-async function loadAlphaLogs(){
-
-$("alphaLogStatus").textContent =
-"CONNECTING TO LOG SERVER...";
-
-
-$("alphaLogs").innerHTML = "";
-
-
-try{
-
-const response =
-await fetch(
-"/api/alpha/logs",
-{
-credentials:"same-origin",
-cache:"no-store"
-}
-);
-
-
-if(!response.ok){
-
-if(response.status===403){
-
-toast(
-"ALPHA ACCESS REQUIRED"
-);
-
-return logout();
-
-}
-
-throw new Error(
-"HTTP "+response.status
-);
-
-}
-
-
-const data =
-await response.json();
-
-
-if(!data.ok){
-
-throw new Error(
-"LOG_ENDPOINT_FAILED"
-);
-
-}
-
-
-alphaLogs =
-Array.isArray(data.logs)
-?
-data.logs
-:
-[];
-
-
-renderAlphaLogs(alphaLogs);
-
-
-$("alphaLogStatus").textContent =
-"LOG SERVER ONLINE // "+
-alphaLogs.length+
-" RECORDS LOADED";
-
-
-}catch(error){
-
-console.error(
-"ALPHA LOG ERROR:",
-error
-);
-
-$("alphaLogStatus").innerHTML =
-`<span class="danger">
-LOG SERVER CONNECTION ERROR
-</span>`;
-
-toast(
-"LOG SERVER CONNECTION ERROR"
-);
-
-}
-
-}
-
-
-/* =====================================================
-   RENDER LOGS
-===================================================== */
-
-function renderAlphaLogs(logs){
-
-if(!logs.length){
-
-$("alphaLogs").innerHTML = `
-
-<tr>
-
-<td colspan="6">
-
-<div class="empty">
-NO AUDIT RECORDS FOUND.
-</div>
-
-</td>
-
-</tr>
-
-`;
-
-return;
-
-}
-
-
-$("alphaLogs").innerHTML = logs.map(x=>`
-
-<tr>
-
-<td class="logId">
-#${esc(x.id)}
-</td>
-
-<td>
-${esc(x.created_at)}
-</td>
-
-<td class="logActor">
-${esc(x.actor_label)}
-</td>
-
-<td class="logAction">
-${esc(x.action)}
-</td>
-
-<td class="logIp">
-${esc(x.ip)}
-</td>
-
-<td class="logDetails">
-${esc(x.details)}
-</td>
-
-</tr>
-
-`).join("");
-
-}
-
-
-/* =====================================================
-   SEARCH LOGS
-===================================================== */
-
-function filterLogs(){
-
-const q =
-$("logSearch").value
-.toLowerCase()
-.trim();
-
-
-if(!q){
-
-renderAlphaLogs(alphaLogs);
-
-return;
-
-}
-
-
-const filtered =
-alphaLogs.filter(x=>
-
-String(x.id)
-.toLowerCase()
-.includes(q)
-
-||
-
-String(x.created_at)
-.toLowerCase()
-.includes(q)
-
-||
-
-String(x.actor_label)
-.toLowerCase()
-.includes(q)
-
-||
-
-String(x.action)
-.toLowerCase()
-.includes(q)
-
-||
-
-String(x.ip)
-.toLowerCase()
-.includes(q)
-
-||
-
-String(x.details)
-.toLowerCase()
-.includes(q)
-
-);
-
-
-renderAlphaLogs(filtered);
-
-}
-
-
-/* =====================================================
-   NORMAL USER
-===================================================== */
+/*
+========================================================
+ENTER USER
+========================================================
+*/
 
 function enterUser(){
 
-$("auth").classList.add("hidden");
-$("home").classList.add("hidden");
-$("appDash").classList.add("hidden");
-$("alphaPage").classList.add("hidden");
+$('auth').classList.add('hidden');
+$('home').classList.add('hidden');
+$('appDash').classList.add('hidden');
+$('userDash').classList.remove('hidden');
+$('topActions').classList.add('hidden');
 
-$("userDash").classList.remove("hidden");
 
-$("topActions").classList.add("hidden");
-
-$("welcome").textContent =
-"WELCOME, "+
+$('welcome').textContent=
+'WELCOME, '+
 me.username.toUpperCase();
 
 
-$("profile").innerHTML = `
+$('profile').innerHTML=`
 
 <span class="tag">
-RANK: ${esc(me.rank)}
+RANK:
+${esc(me.rank)}
 </span>
 
 <span class="tag">
-UNIT: ${esc(me.unit)}
+UNIT:
+${esc(me.unit)}
 </span>
 
 <span class="tag red">
-CLEARANCE: ${esc(me.clearance)}
+CLEARANCE:
+${esc(me.clearance)}
 </span>
 
 `;
 
 
-if(adminRanks.includes(me.rank)){
+/*
+========================================================
+LOG ACCOUNT
+========================================================
+*/
 
-$("adminBtn")
-.classList.remove("hidden");
+if(me.username==='log'){
+
+enterLogAccount();
+
+return;
 
 }
 
+
+/*
+NORMAL USERS
+*/
+
+if(
+adminRanks.includes(me.rank)
+){
+
+$('adminBtn')
+.classList.remove('hidden');
+
+}
 
 loadUser();
 
 }
 
 
-/* =====================================================
-   LOAD USER
-===================================================== */
+/*
+========================================================
+LOG ACCOUNT
+========================================================
+*/
+
+function enterLogAccount(){
+
+/*
+HIDE EVERYTHING EXCEPT LOGS
+*/
+
+$('messagesBtn').classList.add('hidden');
+$('reportsBtn').classList.add('hidden');
+$('sectorBtn').classList.add('hidden');
+$('profileBtn').classList.add('hidden');
+$('adminBtn').classList.add('hidden');
+
+$('logBtn').classList.remove('hidden');
+
+
+$('welcome').textContent=
+'LOG // AUDIT TERMINAL';
+
+
+$('profile').innerHTML=`
+
+<span class="tag amber">
+ALPHA
+</span>
+
+<span class="tag red">
+AUDIT ACCESS
+</span>
+
+`;
+
+
+$('logBtn').click();
+
+}
+
+
+/*
+========================================================
+LOAD USER
+========================================================
+*/
 
 async function loadUser(){
 
 try{
 
-let r =
-await fetch(
-"/api/dashboard",
+let r=await fetch(
+'/api/dashboard',
 {
-credentials:"same-origin"
+credentials:'same-origin'
 }
 );
 
@@ -1760,15 +1619,17 @@ return location.reload();
 }
 
 
-udata =
-await r.json();
+udata=await r.json();
 
-userTab("messages");
+userTab('messages');
 
-}catch{
+
+}catch(e){
+
+console.error(e);
 
 toast(
-"Server connection failed."
+'SERVER CONNECTION ERROR'
 );
 
 }
@@ -1776,40 +1637,52 @@ toast(
 }
 
 
-/* =====================================================
-   USER TABS
-===================================================== */
+/*
+========================================================
+USER TAB
+========================================================
+*/
 
 function userTab(t){
 
-if(t==="messages")
+if(me?.username==='log' && t!=='logs'){
+
+return;
+
+}
+
+if(t==='messages')
 renderMessages();
 
-if(t==="reports")
+if(t==='reports')
 renderReports();
 
-if(t==="sector")
+if(t==='sector')
 renderSector();
 
-if(t==="profile")
+if(t==='profile')
 renderProfile();
 
-if(t==="admin")
+if(t==='admin')
 renderAdmin();
+
+if(t==='logs')
+renderLogs();
 
 }
 
 
-/* =====================================================
-   MESSAGES
-===================================================== */
+/*
+========================================================
+MESSAGES
+========================================================
+*/
 
 function renderMessages(){
 
-let a =
-udata.messages || [];
+let a=udata.messages||[];
 
-$("userContent").innerHTML = `
+$('userContent').innerHTML=`
 
 <div class="panel">
 
@@ -1826,22 +1699,30 @@ a.length
 a.map(m=>`
 
 <div class="card message ${
-!m.read ? "unread" : ""
+!m.read?'unread':''
 }">
 
-<b>${esc(m.subject)}</b>
+<b>
+${esc(m.subject)}
+</b>
 
 <div class="muted mono">
+
 ${esc(m.sender_label)}
-// ${esc(m.created_at)}
-// ${esc(m.type)}
+//
+${esc(m.created_at)}
+//
+${esc(m.type)}
+
 </div>
 
-<p>${esc(m.body)}</p>
+<p>
+${esc(m.body)}
+</p>
 
 </div>
 
-`).join("")
+`).join('')
 :
 '<div class="empty">No messages.</div>'
 }
@@ -1853,16 +1734,17 @@ ${esc(m.sender_label)}
 }
 
 
-/* =====================================================
-   REPORTS
-===================================================== */
+/*
+========================================================
+REPORTS
+========================================================
+*/
 
 function renderReports(){
 
-let a =
-udata.reports || [];
+let a=udata.reports||[];
 
-$("userContent").innerHTML = `
+$('userContent').innerHTML=`
 
 <div class="panel">
 
@@ -1892,7 +1774,8 @@ a.length
 <th></th>
 </tr>
 
-${a.map(x=>`
+${
+a.map(x=>`
 
 <tr>
 
@@ -1917,14 +1800,16 @@ ${esc(x.created_at)}
 <td>
 <button
 class="btn small"
-onclick="viewPdf(${x.id})">
+onclick="viewPdf(${x.id})"
+>
 VIEW PDF
 </button>
 </td>
 
 </tr>
 
-`).join("")}
+`).join('')
+}
 
 </table>
 `
@@ -1939,23 +1824,35 @@ VIEW PDF
 }
 
 
-/* =====================================================
-   SECTOR
-===================================================== */
+/*
+========================================================
+SECTOR
+========================================================
+*/
 
 async function renderSector(){
 
-let r =
-await fetch("/api/sector");
-
-if(!r.ok)
-return toast("Unable to load directory.");
-
-let a =
-await r.json();
+let r=await fetch(
+'/api/sector',
+{
+credentials:'same-origin'
+}
+);
 
 
-$("userContent").innerHTML = `
+if(!r.ok){
+
+return toast(
+'Unable to load directory.'
+);
+
+}
+
+
+let a=await r.json();
+
+
+$('userContent').innerHTML=`
 
 <div class="panel">
 
@@ -1966,14 +1863,17 @@ SECTOR PERSONNEL DIRECTORY
 <table class="table">
 
 <tr>
+
 <th>CODE / USERNAME</th>
 <th>IN-GAME NAME</th>
 <th>RANK</th>
 <th>UNIT</th>
 <th>CLEARANCE</th>
+
 </tr>
 
-${a.map(x=>`
+${
+a.map(x=>`
 
 <tr>
 
@@ -1999,7 +1899,8 @@ ${esc(x.clearance)}
 
 </tr>
 
-`).join("")}
+`).join('')
+}
 
 </table>
 
@@ -2010,13 +1911,15 @@ ${esc(x.clearance)}
 }
 
 
-/* =====================================================
-   PROFILE
-===================================================== */
+/*
+========================================================
+PROFILE
+========================================================
+*/
 
 function renderProfile(){
 
-$("userContent").innerHTML = `
+$('userContent').innerHTML=`
 
 <div class="panel">
 
@@ -2066,10 +1969,6 @@ ${esc(me.unit)}
 
 </div>
 
-<p class="muted">
-Server-side permissions are enforced by rank.
-</p>
-
 </div>
 
 `;
@@ -2077,40 +1976,210 @@ Server-side permissions are enforced by rank.
 }
 
 
-/* =====================================================
-   ADMIN
-===================================================== */
+/*
+========================================================
+LOGS
+========================================================
+*/
+
+async function renderLogs(){
+
+$('userContent').innerHTML=`
+
+<div class="panel">
+
+<div class="log-header">
+
+<div>
+
+<div class="kicker">
+RESTRICTED AUDIT SYSTEM
+</div>
+
+<div class="log-title">
+SYSTEM LOGS
+</div>
+
+<div class="muted mono">
+AUTHORIZED LOG ACCOUNT ONLY
+</div>
+
+</div>
+
+<button
+class="btn amber"
+onclick="renderLogs()"
+>
+REFRESH
+</button>
+
+</div>
+
+<div id="logsContainer">
+
+<div class="empty">
+LOADING LOGS...
+</div>
+
+</div>
+
+</div>
+
+`;
+
+
+try{
+
+let r=await fetch(
+'/api/command/audit',
+{
+credentials:'same-origin',
+cache:'no-store'
+}
+);
+
+
+if(!r.ok){
+
+$('logsContainer').innerHTML=`
+
+<div class="empty danger">
+LOG ACCESS DENIED
+</div>
+
+`;
+
+return;
+
+}
+
+
+let j=await r.json();
+
+let logs=j.logs||[];
+
+
+if(!logs.length){
+
+$('logsContainer').innerHTML=`
+
+<div class="empty">
+NO LOGS AVAILABLE
+</div>
+
+`;
+
+return;
+
+}
+
+
+$('logsContainer').innerHTML=`
+
+<div style="overflow-x:auto">
+
+<table class="log-table">
+
+<tr>
+
+<th>ID</th>
+<th>TIME</th>
+<th>ACTOR</th>
+<th>ACTION</th>
+<th>IP</th>
+<th>DETAILS</th>
+
+</tr>
+
+${
+logs.map(x=>`
+
+<tr>
+
+<td class="mono">
+#${esc(x.id)}
+</td>
+
+<td class="mono">
+${esc(x.created_at)}
+</td>
+
+<td>
+${esc(x.actor_label)}
+</td>
+
+<td class="log-action">
+${esc(x.action)}
+</td>
+
+<td class="log-ip">
+${esc(x.ip)}
+</td>
+
+<td class="log-details">
+${esc(x.details)}
+</td>
+
+</tr>
+
+`).join('')
+}
+
+</table>
+
+</div>
+
+`;
+
+}catch(e){
+
+console.error(e);
+
+$('logsContainer').innerHTML=`
+
+<div class="empty danger">
+SERVER CONNECTION ERROR
+</div>
+
+`;
+
+}
+
+}
+
+
+/*
+========================================================
+ADMIN
+========================================================
+*/
 
 async function renderAdmin(){
 
-let [
-ra,
-ru
-] = await Promise.all([
+let [ra,ru]=await Promise.all([
 
-fetch("/api/admin/applications"),
-fetch("/api/admin/users")
+fetch('/api/admin/applications'),
+
+fetch('/api/admin/users')
 
 ]);
 
 
-if(!ra.ok || !ru.ok){
+if(!ra.ok||!ru.ok){
 
 return toast(
-"Not authorized."
+'Not authorized.'
 );
 
 }
 
 
-let apps =
-await ra.json();
+let apps=await ra.json();
 
-let users =
-await ru.json();
+let users=await ru.json();
 
 
-let h = `
+let h=`
 
 <div class="panel">
 
@@ -2125,25 +2194,34 @@ apps.length
 <table class="table">
 
 <tr>
+
 <th>ID</th>
 <th>IN-GAME NAME</th>
 <th>UNIT</th>
 <th>STATUS</th>
 <th>ACTION</th>
+
 </tr>
 
-${apps.map(a=>`
+${
+apps.map(a=>`
 
 <tr>
 
-<td>${a.id}</td>
+<td class="mono">
+${esc(a.id)}
+</td>
 
 <td>
-<b>${esc(a.name)}</b>
+
+<b>
+${esc(a.name)}
+</b>
 
 <div class="muted">
 ${esc(a.experience)}
 </div>
+
 </td>
 
 <td>
@@ -2157,29 +2235,33 @@ ${esc(a.status)}
 <td>
 
 ${
-a.status==="PENDING"
+a.status==='PENDING'
 ?
 `
 <button
 class="btn green small"
-onclick="approve(${a.id})">
+onclick="approve(${a.id})"
+>
 ACCEPT AS AGENT
 </button>
 
 <button
 class="btn small"
-onclick="reject(${a.id})">
+onclick="reject(${a.id})"
+>
 REJECT
 </button>
 `
-:"—"
+:
+'—'
 }
 
 </td>
 
 </tr>
 
-`).join("")}
+`).join('')
+}
 
 </table>
 `
@@ -2192,7 +2274,7 @@ REJECT
 `;
 
 
-h += `
+h+=`
 
 <div class="panel">
 
@@ -2203,15 +2285,18 @@ SECTOR TABLE
 <table class="table">
 
 <tr>
-<th>USERNAME / CODE</th>
+
+<th>USERNAME</th>
 <th>IN-GAME NAME</th>
 <th>RANK</th>
 <th>UNIT</th>
 <th>CLEARANCE</th>
 <th>CREATED</th>
+
 </tr>
 
-${users.map(u=>`
+${
+users.map(u=>`
 
 <tr>
 
@@ -2241,7 +2326,8 @@ ${esc(u.created_at)}
 
 </tr>
 
-`).join("")}
+`).join('')
+}
 
 </table>
 
@@ -2250,7 +2336,7 @@ ${esc(u.created_at)}
 `;
 
 
-h += `
+h+=`
 
 <div class="panel">
 
@@ -2269,10 +2355,10 @@ TARGET USERNAME / APPLICATION
 <input
 id="tmUser"
 class="input"
-placeholder="agent_001 or app:12">
+placeholder="agent_001 or app:12"
+>
 
 </div>
-
 
 <div class="field">
 
@@ -2280,9 +2366,7 @@ placeholder="agent_001 or app:12">
 TYPE
 </label>
 
-<select
-id="tmType"
-class="input">
+<select id="tmType" class="input">
 
 <option>MESSAGE</option>
 <option>TASK</option>
@@ -2294,7 +2378,6 @@ class="input">
 
 </div>
 
-
 <div class="field">
 
 <label>
@@ -2303,10 +2386,10 @@ SUBJECT
 
 <input
 id="tmSub"
-class="input">
+class="input"
+>
 
 </div>
-
 
 <div class="field">
 
@@ -2317,14 +2400,15 @@ MESSAGE / TASK DETAILS
 <textarea
 id="tmBody"
 class="input"
-rows="5"></textarea>
+rows="5"
+></textarea>
 
 </div>
 
-
 <button
 class="btn red"
-onclick="sendMessage()">
+onclick="sendMessage()"
+>
 SEND
 </button>
 
@@ -2333,7 +2417,7 @@ SEND
 `;
 
 
-h += `
+h+=`
 
 <div class="panel">
 
@@ -2349,10 +2433,10 @@ TITLE
 
 <input
 id="rt"
-class="input">
+class="input"
+>
 
 </div>
-
 
 <div class="field">
 
@@ -2362,7 +2446,8 @@ CLASSIFICATION
 
 <select
 id="rc"
-class="input">
+class="input"
+>
 
 <option>CONFIDENTIAL</option>
 <option>SECRET</option>
@@ -2372,7 +2457,6 @@ class="input">
 </select>
 
 </div>
-
 
 <div class="field">
 
@@ -2384,14 +2468,15 @@ PDF
 id="rf"
 type="file"
 accept="application/pdf"
-class="input">
+class="input"
+>
 
 </div>
 
-
 <button
 class="btn red"
-onclick="uploadReport()">
+onclick="uploadReport()"
+>
 REGISTER PDF REPORT
 </button>
 
@@ -2400,9 +2485,13 @@ REGISTER PDF REPORT
 `;
 
 
-if(me.rank==="COMMAND OF CIA"){
+/*
+COMMAND ACCOUNT
+*/
 
-h += `
+if(me.rank==='COMMAND OF CIA'){
+
+h+=`
 
 <div class="panel">
 
@@ -2418,7 +2507,7 @@ COMMAND // CREATE ACCOUNT
 </div>
 
 <div class="field">
-<label>IN-GAME NAME (ENGLISH)</label>
+<label>IN-GAME NAME</label>
 <input id="nin" class="input">
 </div>
 
@@ -2441,20 +2530,20 @@ COMMAND // CREATE ACCOUNT
 </div>
 
 <div class="field">
+
 <label>UNIT</label>
 
 <input
 id="nunit"
 class="input"
-value="Intelligence Operations">
+value="Intelligence Operations"
+>
 
 </div>
 
 <div class="field">
 
-<label>
-CLEARANCE
-</label>
+<label>CLEARANCE</label>
 
 <select id="nc" class="input">
 
@@ -2470,10 +2559,10 @@ CLEARANCE
 
 </div>
 
-
 <button
 class="btn red"
-onclick="createUser()">
+onclick="createUser()"
+>
 CREATE ACCOUNT
 </button>
 
@@ -2484,34 +2573,38 @@ CREATE ACCOUNT
 }
 
 
-$("userContent").innerHTML = h;
+$('userContent').innerHTML=h;
 
 }
 
 
-/* =====================================================
-   APPROVE
-===================================================== */
+/*
+========================================================
+APPROVE
+========================================================
+*/
 
 async function approve(id){
 
-let r =
-await fetch(
-"/api/admin/application/"+id+"/approve",
+let r=await fetch(
+'/api/admin/application/'+id+'/approve',
 {
-method:"POST"
+method:'POST'
 }
 );
 
-let j =
-await r.json();
+let j=await r.json();
 
-if(!r.ok)
-return toast("Could not approve.");
+if(!r.ok){
+
+return toast(
+'Could not approve.'
+);
+
+}
 
 toast(
-"Approved. Username: "+
-j.username
+'Approved. Credentials issued.'
 );
 
 renderAdmin();
@@ -2519,25 +2612,31 @@ renderAdmin();
 }
 
 
-/* =====================================================
-   REJECT
-===================================================== */
+/*
+========================================================
+REJECT
+========================================================
+*/
 
 async function reject(id){
 
-let r =
-await fetch(
-"/api/admin/application/"+id+"/reject",
+let r=await fetch(
+'/api/admin/application/'+id+'/reject',
 {
-method:"POST"
+method:'POST'
 }
 );
 
-if(!r.ok)
-return toast("Could not reject.");
+if(!r.ok){
+
+return toast(
+'Could not reject.'
+);
+
+}
 
 toast(
-"Application rejected."
+'Application rejected.'
 );
 
 renderAdmin();
@@ -2545,42 +2644,46 @@ renderAdmin();
 }
 
 
-/* =====================================================
-   SEND MESSAGE
-===================================================== */
+/*
+========================================================
+SEND MESSAGE
+========================================================
+*/
 
 async function sendMessage(){
 
-let b = {
+let b={
 
-target:$("tmUser").value.trim(),
-subject:$("tmSub").value.trim(),
-body:$("tmBody").value.trim(),
-type:$("tmType").value
+target:$('tmUser').value.trim(),
+
+subject:$('tmSub').value.trim(),
+
+body:$('tmBody').value.trim(),
+
+type:$('tmType').value
 
 };
 
 
 if(
-!b.target ||
-!b.subject ||
+!b.target||
+!b.subject||
 !b.body
 ){
 
 return toast(
-"Complete target, subject and message."
+'Complete target, subject and message.'
 );
 
 }
 
 
-let r =
-await fetch(
-"/api/admin/message",
+let r=await fetch(
+'/api/admin/message',
 {
-method:"POST",
+method:'POST',
 headers:{
-"Content-Type":"application/json"
+'Content-Type':'application/json'
 },
 body:JSON.stringify(b)
 }
@@ -2589,54 +2692,59 @@ body:JSON.stringify(b)
 
 if(!r.ok){
 
-let j =
-await r.json();
+let j=await r.json();
 
 return toast(
-j.error==="USER_NOT_FOUND"
+j.error==='USER_NOT_FOUND'
 ?
-"Username not found."
+'Username not found.'
 :
-"Could not send."
+'Could not send.'
 );
 
 }
 
 
 toast(
-"Message/task sent."
+'Message/task sent.'
 );
 
-$("tmBody").value="";
+$('tmBody').value='';
 
 }
 
 
-/* =====================================================
-   CREATE USER
-===================================================== */
+/*
+========================================================
+CREATE USER
+========================================================
+*/
 
 async function createUser(){
 
-let b = {
+let b={
 
-username:$("nu").value.trim(),
-password:$("np").value,
-rank:$("nr").value,
-unit:$("nunit").value.trim(),
-clearance:$("nc").value,
-in_game_name:$("nin").value.trim()
+username:$('nu').value.trim(),
+
+password:$('np').value,
+
+rank:$('nr').value,
+
+unit:$('nunit').value.trim(),
+
+clearance:$('nc').value,
+
+in_game_name:$('nin').value.trim()
 
 };
 
 
-let r =
-await fetch(
-"/api/admin/users",
+let r=await fetch(
+'/api/admin/users',
 {
-method:"POST",
+method:'POST',
 headers:{
-"Content-Type":"application/json"
+'Content-Type':'application/json'
 },
 body:JSON.stringify(b)
 }
@@ -2645,22 +2753,15 @@ body:JSON.stringify(b)
 
 if(!r.ok){
 
-let j =
-await r.json();
-
 return toast(
-j.error==="ALPHA_MUST_BE_CREATED_IN_SERVER_CODE"
-?
-"ALPHA can only be created in server.js."
-:
-"Could not create account."
+'Could not create account.'
 );
 
 }
 
 
 toast(
-"Account created."
+'Account created.'
 );
 
 renderAdmin();
@@ -2668,304 +2769,19 @@ renderAdmin();
 }
 
 
-/* =====================================================
-   UPLOAD REPORT
-===================================================== */
+/*
+========================================================
+UPLOAD REPORT
+========================================================
+*/
 
 async function uploadReport(){
 
-let f =
-$("rf").files[0];
+let f=$('rf').files[0];
 
-let title =
-$("rt").value.trim();
+let title=$('rt').value.trim();
 
 
-if(!f || !title){
+if(!f||!title){
 
-return toast(
-"Enter title and select a PDF."
-);
-
-}
-
-
-let fd =
-new FormData();
-
-fd.append(
-"title",
-title
-);
-
-fd.append(
-"classification",
-$("rc").value
-);
-
-fd.append(
-"pdf",
-f
-);
-
-
-let r =
-await fetch(
-"/api/admin/reports",
-{
-method:"POST",
-body:fd
-}
-);
-
-
-if(!r.ok){
-
-return toast(
-"Could not register report."
-);
-
-}
-
-
-toast(
-"PDF report registered."
-);
-
-loadUser();
-
-}
-
-
-/* =====================================================
-   PDF
-===================================================== */
-
-function viewPdf(id){
-
-$("pdfFrame").src =
-"/api/reports/"+id;
-
-$("pdfModal")
-.classList.remove("hidden");
-
-}
-
-
-function closePdf(){
-
-$("pdfFrame").src="";
-
-$("pdfModal")
-.classList.add("hidden");
-
-}
-
-
-/* =====================================================
-   LOGOUT
-===================================================== */
-
-async function logout(){
-
-try{
-
-await fetch(
-"/api/logout",
-{
-method:"POST",
-credentials:"same-origin"
-}
-);
-
-}catch{}
-
-location.reload();
-
-}
-
-
-/* =====================================================
-   INITIAL SESSION CHECK
-===================================================== */
-
-async function boot(){
-
-try{
-
-const r =
-await fetch(
-"/api/me",
-{
-credentials:"same-origin",
-cache:"no-store"
-}
-);
-
-const j =
-await r.json();
-
-
-if(j.user){
-
-me = j.user;
-
-
-/*
- * إذا كان الحساب log:
- * لا نعرض Dashboard نهائيًا.
- */
-
-if(
-me.username === ALPHA_USERNAME &&
-me.rank === ALPHA_RANK
-){
-
-enterAlpha();
-
-return;
-
-}
-
-
-enterUser();
-
-return;
-
-}
-
-
-/*
- * application session
- */
-
-const ar =
-await fetch(
-"/api/application/me",
-{
-credentials:"same-origin"
-}
-);
-
-const x =
-await ar.json();
-
-
-if(x.application){
-
-appdata = x;
-
-$("home").classList.add("hidden");
-$("topActions").classList.add("hidden");
-$("appDash").classList.remove("hidden");
-
-$("appNameTitle").textContent =
-x.application.name;
-
-$("appStatus").innerHTML =
-`<span class="tag amber">
-${esc(x.application.status)}
-</span>`;
-
-$("appMeta").textContent =
-"Application #"+
-x.application.id+
-" // "+
-x.application.unit;
-
-appTab("messages");
-
-}
-
-}catch(error){
-
-console.error(
-"BOOT ERROR:",
-error
-);
-
-}
-
-}
-
-
-/* =====================================================
-   LANGUAGE
-===================================================== */
-
-let lang =
-localStorage.getItem("cia_lang") ||
-"en";
-
-
-const I18N = {
-
-en:{
-LOGIN:"LOGIN",
-APPLY:"APPLY"
-},
-
-ar:{
-LOGIN:"تسجيل الدخول",
-APPLY:"التقديم"
-}
-
-};
-
-
-function setLang(next){
-
-lang =
-next==="ar"
-?
-"ar"
-:
-"en";
-
-
-localStorage.setItem(
-"cia_lang",
-lang
-);
-
-document.documentElement.lang =
-lang;
-
-document.documentElement.dir =
-lang==="ar"
-?
-"rtl"
-:
-"ltr";
-
-
-document.body.classList.toggle(
-"rtl",
-lang==="ar"
-);
-
-
-$("langEN")
-.classList.toggle(
-"active",
-lang==="en"
-);
-
-
-$("langAR")
-.classList.toggle(
-"active",
-lang==="ar"
-);
-
-}
-
-
-setLang(lang);
-
-boot();
-
-</script>
-
-</body>
-</html>
+return
