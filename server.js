@@ -12,9 +12,36 @@ const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 
-/* =========================================================
-   DATABASE
-========================================================= */
+// ======================================================
+// PROXY / IP
+// ======================================================
+
+app.set("trust proxy", true);
+
+function getClientIP(req) {
+    const cfIP = req.headers["cf-connecting-ip"];
+
+    if (cfIP) {
+        return String(cfIP).trim().replace("::ffff:", "");
+    }
+
+    const forwarded = req.headers["x-forwarded-for"];
+
+    if (forwarded) {
+        return String(forwarded)
+            .split(",")[0]
+            .trim()
+            .replace("::ffff:", "");
+    }
+
+    return String(req.socket.remoteAddress || "unknown")
+        .trim()
+        .replace("::ffff:", "");
+}
+
+// ======================================================
+// DATABASE
+// ======================================================
 
 const dbPath = path.join(__dirname, "cia.db");
 const db = new Database(dbPath);
@@ -75,43 +102,35 @@ CREATE TABLE IF NOT EXISTS audit (
     actor INTEGER,
     actor_label TEXT,
     action TEXT NOT NULL,
-    user_agent TEXT,
+    ip TEXT,
     details TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 `);
 
-/* =========================================================
-   MIGRATION
-========================================================= */
+// ======================================================
+// DIRECTORIES
+// ======================================================
 
-try {
-    db.exec("ALTER TABLE users ADD COLUMN in_game_name TEXT");
-} catch (e) {
-    // Column already exists.
+const uploads = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(uploads)) {
+    fs.mkdirSync(uploads, { recursive: true });
 }
 
-try {
-    db.exec("ALTER TABLE audit ADD COLUMN user_agent TEXT");
-} catch (e) {
-    // Column already exists.
-}
+// ======================================================
+// RANK SYSTEM
+// ======================================================
 
-/* =========================================================
-   RANKS
-========================================================= */
+// ALPHA لا يمكن إعطاؤها من الموقع.
+// الحساب الوحيد يتم إنشاؤه من ensureAlpha() بالأسفل.
 
 const RANKS = [
     "AGENT",
     "AGENT OFFICER",
-    "COMMAND OF CIA"
+    "COMMAND OF CIA",
+    "ALPHA"
 ];
-
-/*
-    ALPHA is intentionally NOT included here.
-
-    It cannot be assigned from the website.
-*/
 
 const ADMIN = [
     "AGENT OFFICER",
@@ -124,8 +143,6 @@ const COMMAND = [
     "ALPHA"
 ];
 
-const ALPHA = "ALPHA";
-
 const clearanceRank = {
     RESTRICTED: 1,
     CONFIDENTIAL: 2,
@@ -134,21 +151,75 @@ const clearanceRank = {
     OMEGA: 5
 };
 
-/* =========================================================
-   DIRECTORIES
-========================================================= */
+// ======================================================
+// ALPHA ACCOUNT
+// ======================================================
 
-const publicDir = path.join(__dirname, "public");
-const uploadsDir = path.join(__dirname, "uploads");
+function ensureAlpha() {
+    const existing = db
+        .prepare("SELECT * FROM users WHERE username = ?")
+        .get("code_alpha");
 
-fs.mkdirSync(publicDir, { recursive: true });
-fs.mkdirSync(uploadsDir, { recursive: true });
+    if (!existing) {
+        const password = "CHANGE_THIS_ALPHA_PASSWORD";
 
-/* =========================================================
-   EXPRESS
-========================================================= */
+        db.prepare(`
+            INSERT INTO users
+            (username, password, rank, unit, clearance, in_game_name)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+            "code_alpha",
+            bcrypt.hashSync(password, 12),
+            "ALPHA",
+            "CIA COMMAND",
+            "OMEGA",
+            "CODE ALPHA"
+        );
 
-app.set("trust proxy", true);
+        console.log(
+            "================================================"
+        );
+        console.log(
+            "ALPHA ACCOUNT CREATED"
+        );
+        console.log(
+            "Username: code_alpha"
+        );
+        console.log(
+            "Password: CHANGE_THIS_ALPHA_PASSWORD"
+        );
+        console.log(
+            "CHANGE THE PASSWORD IN server.js"
+        );
+        console.log(
+            "================================================"
+        );
+    }
+}
+
+ensureAlpha();
+
+// ======================================================
+// MULTER / PDF
+// ======================================================
+
+const upload = multer({
+    dest: uploads,
+    limits: {
+        fileSize: 20 * 1024 * 1024
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === "application/pdf") {
+            cb(null, true);
+        } else {
+            cb(new Error("Only PDF files are allowed."));
+        }
+    }
+});
+
+// ======================================================
+// MIDDLEWARE
+// ======================================================
 
 app.use(express.json({
     limit: "2mb"
@@ -158,15 +229,11 @@ app.use(express.urlencoded({
     extended: true
 }));
 
-/* =========================================================
-   SESSION
-========================================================= */
-
 app.use(
     session({
         secret:
             process.env.SESSION_SECRET ||
-            "CHANGE_THIS_SESSION_SECRET_IN_RENDER",
+            "CHANGE_THIS_SESSION_SECRET",
 
         resave: false,
 
@@ -181,9 +248,9 @@ app.use(
     })
 );
 
-/* =========================================================
-   COOKIE PARSER
-========================================================= */
+// ======================================================
+// COOKIE PARSER
+// ======================================================
 
 app.use((req, res, next) => {
     const raw = req.headers.cookie || "";
@@ -193,69 +260,72 @@ app.use((req, res, next) => {
     raw.split(";").forEach((item) => {
         const index = item.indexOf("=");
 
-        if (index > 0) {
-            const key = item
-                .slice(0, index)
-                .trim();
+        if (index <= 0) return;
 
-            const value = item
-                .slice(index + 1)
-                .trim();
+        const key = item
+            .slice(0, index)
+            .trim();
 
-            try {
-                req.cookies[key] =
-                    decodeURIComponent(value);
-            } catch {
-                req.cookies[key] = value;
-            }
+        const value = item
+            .slice(index + 1)
+            .trim();
+
+        try {
+            req.cookies[key] = decodeURIComponent(value);
+        } catch {
+            req.cookies[key] = value;
         }
     });
 
     next();
 });
 
-/* =========================================================
-   USER AGENT
-========================================================= */
-
-function getUserAgent(req) {
-    return String(
-        req.headers["user-agent"] || "Unknown"
-    ).slice(0, 500);
-}
-
-/* =========================================================
-   AUDIT LOG
-========================================================= */
+// ======================================================
+// AUDIT
+// ======================================================
 
 function audit(req, action, details = "") {
     try {
         const user = req.session?.user;
 
         db.prepare(`
-            INSERT INTO audit (
-                actor,
-                actor_label,
-                action,
-                user_agent,
-                details
-            )
+            INSERT INTO audit
+            (actor, actor_label, action, ip, details)
             VALUES (?, ?, ?, ?, ?)
         `).run(
             user?.id || null,
             user?.username || user?.rank || "PUBLIC",
             action,
-            getUserAgent(req),
+            getClientIP(req),
             details
         );
     } catch (error) {
-        console.error("Audit error:", error.message);
+        console.error("AUDIT ERROR:", error);
     }
 }
 
-/* =========================================================
-   AUTH
-========================================================= */
+// ======================================================
+// FIRST PAGE VISIT LOG
+// ======================================================
+
+app.use((req, res, next) => {
+    if (
+        req.method === "GET" &&
+        req.path === "/"
+    ) {
+        audit(
+            req,
+            "SITE_VISIT",
+            `path=${req.path}`
+        );
+    }
+
+    next();
+});
+
+// ======================================================
+// AUTH
+// ======================================================
 
 function auth(req, res, next) {
     if (!req.session.user) {
@@ -267,20 +337,18 @@ function auth(req, res, next) {
     next();
 }
 
-/* =========================================================
-   ADMIN
-========================================================= */
+// ======================================================
+// ADMIN
+// ======================================================
 
 function admin(req, res, next) {
-    const user = req.session.user;
-
-    if (!user) {
+    if (!req.session.user) {
         return res.status(401).json({
             error: "AUTH_REQUIRED"
         });
     }
 
-    if (!ADMIN.includes(user.rank)) {
+    if (!ADMIN.includes(req.session.user.rank)) {
         return res.status(403).json({
             error: "FORBIDDEN"
         });
@@ -289,20 +357,18 @@ function admin(req, res, next) {
     next();
 }
 
-/* =========================================================
-   COMMAND / ALPHA
-========================================================= */
+// ======================================================
+// COMMAND / ALPHA
+// ======================================================
 
 function command(req, res, next) {
-    const user = req.session.user;
-
-    if (!user) {
+    if (!req.session.user) {
         return res.status(401).json({
             error: "AUTH_REQUIRED"
         });
     }
 
-    if (!COMMAND.includes(user.rank)) {
+    if (!COMMAND.includes(req.session.user.rank)) {
         return res.status(403).json({
             error: "COMMAND_ONLY"
         });
@@ -311,20 +377,18 @@ function command(req, res, next) {
     next();
 }
 
-/* =========================================================
-   ALPHA ONLY
-========================================================= */
+// ======================================================
+// ALPHA ONLY
+// ======================================================
 
 function alphaOnly(req, res, next) {
-    const user = req.session.user;
-
-    if (!user) {
+    if (!req.session.user) {
         return res.status(401).json({
             error: "AUTH_REQUIRED"
         });
     }
 
-    if (user.rank !== ALPHA) {
+    if (req.session.user.rank !== "ALPHA") {
         return res.status(403).json({
             error: "ALPHA_ONLY"
         });
@@ -333,9 +397,9 @@ function alphaOnly(req, res, next) {
     next();
 }
 
-/* =========================================================
-   HELPERS
-========================================================= */
+// ======================================================
+// HELPERS
+// ======================================================
 
 function canView(user, classification) {
     return (
@@ -347,9 +411,7 @@ function canView(user, classification) {
 function safeUser(user) {
     if (!user) return null;
 
-    const copy = {
-        ...user
-    };
+    const copy = { ...user };
 
     delete copy.password;
 
@@ -376,437 +438,294 @@ function randomPassword() {
     );
 }
 
-/* =========================================================
-   ALPHA ACCOUNT
-========================================================= */
+// ======================================================
+// COOKIE / APPLICATION
+// ======================================================
 
-/*
-    The website can NEVER assign ALPHA.
+app.post("/api/applications", (req, res) => {
+    const {
+        name,
+        age,
+        unit,
+        experience,
+        why
+    } = req.body;
 
-    code_alpha is automatically maintained as ALPHA.
-*/
-
-function ensureAlpha() {
-    const existing = db
-        .prepare(
-            "SELECT * FROM users WHERE username = ?"
-        )
-        .get("code_alpha");
-
-    if (!existing) {
-        const passwordHash = bcrypt.hashSync(
-            "cia command91",
-            12
-        );
-
-        db.prepare(`
-            INSERT INTO users (
-                username,
-                password,
-                rank,
-                unit,
-                clearance,
-                in_game_name
-            )
-            VALUES (?, ?, ?, ?, ?, ?)
-        `).run(
-            "code_alpha",
-            passwordHash,
-            "ALPHA",
-            "CIA COMMAND",
-            "OMEGA",
-            "CODE ALPHA"
-        );
-
-        console.log(
-            "[SYSTEM] code_alpha created as ALPHA."
-        );
-    } else {
-        db.prepare(`
-            UPDATE users
-            SET rank = ?,
-                unit = ?,
-                clearance = ?
-            WHERE username = ?
-        `).run(
-            "ALPHA",
-            "CIA COMMAND",
-            "OMEGA",
-            "code_alpha"
-        );
-
-        console.log(
-            "[SYSTEM] code_alpha confirmed as ALPHA."
-        );
+    if (
+        !name ||
+        !age ||
+        !unit ||
+        !experience ||
+        !why
+    ) {
+        return res.status(400).json({
+            error: "MISSING_FIELDS"
+        });
     }
-}
 
-ensureAlpha();
+    const token = crypto
+        .randomBytes(32)
+        .toString("hex");
 
-/* =========================================================
-   UPLOAD
-========================================================= */
-
-const upload = multer({
-    dest: uploadsDir,
-
-    limits: {
-        fileSize: 20 * 1024 * 1024
-    },
-
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype !== "application/pdf") {
-            return cb(
-                new Error("Only PDF files are allowed.")
-            );
-        }
-
-        cb(null, true);
-    }
-});
-
-/* =========================================================
-   PUBLIC APPLICATION
-========================================================= */
-
-app.post(
-    "/api/applications",
-    (req, res) => {
-
-        const {
+    const result = db.prepare(`
+        INSERT INTO applications
+        (
             name,
             age,
             unit,
             experience,
-            why
-        } = req.body;
+            why,
+            dashboard_token
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+        String(name).trim(),
+        Number(age),
+        String(unit),
+        String(experience).trim(),
+        String(why).trim(),
+        token
+    );
+
+    audit(
+        req,
+        "APPLICATION_SUBMITTED",
+        `application=${result.lastInsertRowid}`
+    );
+
+    res.cookie(
+        "cia_application",
+        token,
+        {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 1000 * 60 * 60 * 24 * 365
+        }
+    );
+
+    res.json({
+        ok: true,
+        id: result.lastInsertRowid,
+        token
+    });
+});
+
+// ======================================================
+// APPLICATION ME
+// ======================================================
+
+app.get("/api/application/me", (req, res) => {
+    const token =
+        req.cookies?.cia_application ||
+        req.headers["x-application-token"] ||
+        req.query.token;
+
+    if (!token) {
+        return res.json({
+            application: null
+        });
+    }
+
+    const application = db.prepare(`
+        SELECT
+            id,
+            name,
+            age,
+            unit,
+            experience,
+            why,
+            status,
+            linked_user,
+            created_at,
+            updated_at
+        FROM applications
+        WHERE dashboard_token = ?
+    `).get(token);
+
+    if (!application) {
+        return res.json({
+            application: null
+        });
+    }
+
+    const messages = db.prepare(`
+        SELECT
+            id,
+            sender_label,
+            subject,
+            body,
+            type,
+            created_at,
+            read
+        FROM messages
+        WHERE recipient_application = ?
+        ORDER BY id DESC
+    `).all(application.id);
+
+    let credentials = null;
+
+    if (application.linked_user) {
+        credentials = db.prepare(`
+            SELECT
+                username,
+                rank,
+                unit,
+                clearance
+            FROM users
+            WHERE id = ?
+        `).get(application.linked_user);
+    }
+
+    res.json({
+        application,
+        messages,
+        credentials
+    });
+});
+
+// ======================================================
+// LOGIN
+// ======================================================
+
+app.post("/api/login", (req, res, next) => {
+    try {
+        const username =
+            String(req.body.username || "").trim();
+
+        const password =
+            String(req.body.password || "");
+
+        const user = db.prepare(`
+            SELECT *
+            FROM users
+            WHERE username = ?
+        `).get(username);
 
         if (
-            !name ||
-            !age ||
-            !unit ||
-            !experience ||
-            !why
-        ) {
-            return res.status(400).json({
-                error: "MISSING_FIELDS"
-            });
-        }
-
-        const token =
-            crypto.randomBytes(32).toString("hex");
-
-        const result = db.prepare(`
-            INSERT INTO applications (
-                name,
-                age,
-                unit,
-                experience,
-                why,
-                dashboard_token
+            !user ||
+            !bcrypt.compareSync(
+                password,
+                user.password
             )
-            VALUES (?, ?, ?, ?, ?, ?)
-        `).run(
-            String(name).trim(),
-            Number(age),
-            String(unit),
-            String(experience).trim(),
-            String(why).trim(),
-            token
-        );
+        ) {
+            audit(
+                req,
+                "LOGIN_FAILED",
+                `username=${username}`
+            );
 
-        audit(
-            req,
-            "APPLICATION_SUBMITTED",
-            `application=${result.lastInsertRowid}`
-        );
+            return res.status(401).json({
+                error: "INVALID_CREDENTIALS"
+            });
+        }
 
-        res.cookie(
-            "cia_application",
-            token,
-            {
-                httpOnly: true,
-                sameSite: "lax",
-                maxAge:
-                    1000 *
-                    60 *
-                    60 *
-                    24 *
-                    365
+        req.session.regenerate((err) => {
+            if (err) {
+                return next(err);
             }
-        );
 
-        res.json({
-            ok: true,
-            id: result.lastInsertRowid,
-            token
-        });
-    }
-);
+            req.session.user = user;
 
-/* =========================================================
-   APPLICATION ME
-========================================================= */
-
-app.get(
-    "/api/application/me",
-    (req, res) => {
-
-        const token =
-            req.cookies?.cia_application ||
-            req.headers["x-application-token"] ||
-            req.query.token;
-
-        if (!token) {
-            return res.json({
-                application: null
-            });
-        }
-
-        const application = db.prepare(`
-            SELECT
-                id,
-                name,
-                age,
-                unit,
-                experience,
-                why,
-                status,
-                linked_user,
-                created_at,
-                updated_at
-            FROM applications
-            WHERE dashboard_token = ?
-        `).get(token);
-
-        if (!application) {
-            return res.json({
-                application: null
-            });
-        }
-
-        const messages = db.prepare(`
-            SELECT
-                id,
-                sender_label,
-                subject,
-                body,
-                type,
-                created_at,
-                read
-            FROM messages
-            WHERE recipient_application = ?
-            ORDER BY id DESC
-        `).all(application.id);
-
-        let credentials = null;
-
-        if (application.linked_user) {
-            credentials = db.prepare(`
-                SELECT
-                    username,
-                    rank,
-                    unit,
-                    clearance
-                FROM users
-                WHERE id = ?
-            `).get(application.linked_user);
-        }
-
-        res.json({
-            application,
-            messages,
-            credentials
-        });
-    }
-);
-
-/* =========================================================
-   LOGIN
-========================================================= */
-
-app.post(
-    "/api/login",
-    (req, res, next) => {
-
-        try {
-
-            const username =
-                String(
-                    req.body.username || ""
-                ).trim();
-
-            const password =
-                String(
-                    req.body.password || ""
-                );
-
-            const user = db.prepare(`
-                SELECT *
-                FROM users
-                WHERE username = ?
-            `).get(username);
-
-            if (
-                !user ||
-                !bcrypt.compareSync(
-                    password,
-                    user.password
-                )
-            ) {
+            req.session.save((saveError) => {
+                if (saveError) {
+                    return next(saveError);
+                }
 
                 audit(
                     req,
-                    "LOGIN_FAILED",
-                    `username=${username}`
+                    "LOGIN_SUCCESS",
+                    `rank=${user.rank}`
                 );
 
-                return res.status(401).json({
-                    error: "INVALID_CREDENTIALS"
-                });
-            }
-
-            req.session.regenerate(
-                (error) => {
-
-                    if (error) {
-                        return next(error);
-                    }
-
-                    req.session.user = user;
-
-                    req.session.save(
-                        (saveError) => {
-
-                            if (saveError) {
-                                return next(saveError);
-                            }
-
-                            audit(
-                                req,
-                                "LOGIN_SUCCESS",
-                                `rank=${user.rank}`
-                            );
-
-                            res.json({
-                                user:
-                                    safeUser(user)
-                            });
-                        }
-                    );
-                }
-            );
-
-        } catch (error) {
-            next(error);
-        }
-    }
-);
-
-/* =========================================================
-   LOGOUT
-========================================================= */
-
-app.post(
-    "/api/logout",
-    auth,
-    (req, res) => {
-
-        audit(
-            req,
-            "LOGOUT"
-        );
-
-        req.session.destroy(
-            () => {
                 res.json({
-                    ok: true
+                    user: safeUser(user)
                 });
-            }
+            });
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// ======================================================
+// LOGOUT
+// ======================================================
+
+app.post("/api/logout", auth, (req, res) => {
+    audit(req, "LOGOUT");
+
+    req.session.destroy(() => {
+        res.json({
+            ok: true
+        });
+    });
+});
+
+// ======================================================
+// CURRENT USER
+// ======================================================
+
+app.get("/api/me", (req, res) => {
+    res.json({
+        user: safeUser(req.session.user)
+    });
+});
+
+// ======================================================
+// DASHBOARD
+// ======================================================
+
+app.get("/api/dashboard", auth, (req, res) => {
+    const user = req.session.user;
+
+    const messages = db.prepare(`
+        SELECT
+            id,
+            sender_label,
+            subject,
+            body,
+            type,
+            created_at,
+            read
+        FROM messages
+        WHERE recipient_user = ?
+        ORDER BY id DESC
+    `).all(user.id);
+
+    const reports = db.prepare(`
+        SELECT
+            id,
+            title,
+            author,
+            classification,
+            created_at
+        FROM reports
+        ORDER BY id DESC
+    `)
+        .all()
+        .filter((report) =>
+            canView(
+                user,
+                report.classification
+            )
         );
-    }
-);
 
-/* =========================================================
-   CURRENT USER
-========================================================= */
+    res.json({
+        user: safeUser(user),
+        messages,
+        reports
+    });
+});
 
-app.get(
-    "/api/me",
-    (req, res) => {
-
-        res.json({
-            user:
-                safeUser(
-                    req.session.user
-                )
-        });
-    }
-);
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-app.get(
-    "/api/dashboard",
-    auth,
-    (req, res) => {
-
-        const user =
-            req.session.user;
-
-        const messages = db.prepare(`
-            SELECT
-                id,
-                sender_label,
-                subject,
-                body,
-                type,
-                created_at,
-                read
-            FROM messages
-            WHERE recipient_user = ?
-            ORDER BY id DESC
-        `).all(user.id);
-
-        const allReports = db.prepare(`
-            SELECT
-                id,
-                title,
-                author,
-                classification,
-                created_at
-            FROM reports
-            ORDER BY id DESC
-        `).all();
-
-        const reports =
-            allReports.filter(
-                report =>
-                    canView(
-                        user,
-                        report.classification
-                    )
-            );
-
-        res.json({
-            user: safeUser(user),
-            messages,
-            reports
-        });
-    }
-);
-
-/* =========================================================
-   READ MESSAGE
-========================================================= */
+// ======================================================
+// READ MESSAGE
+// ======================================================
 
 app.post(
     "/api/messages/:id/read",
     auth,
     (req, res) => {
-
         db.prepare(`
             UPDATE messages
             SET read = 1
@@ -817,21 +736,26 @@ app.post(
             req.session.user.id
         );
 
+        audit(
+            req,
+            "MESSAGE_READ",
+            `message=${req.params.id}`
+        );
+
         res.json({
             ok: true
         });
     }
 );
 
-/* =========================================================
-   ADMIN APPLICATIONS
-========================================================= */
+// ======================================================
+// ADMIN APPLICATIONS
+// ======================================================
 
 app.get(
     "/api/admin/applications",
     admin,
     (req, res) => {
-
         res.json(
             db.prepare(`
                 SELECT
@@ -852,39 +776,34 @@ app.get(
     }
 );
 
-/* =========================================================
-   APPROVE APPLICATION
-========================================================= */
+// ======================================================
+// APPROVE APPLICATION
+// ======================================================
 
 app.post(
     "/api/admin/application/:id/approve",
     admin,
     (req, res) => {
-
-        const application =
-            db.prepare(`
-                SELECT *
-                FROM applications
-                WHERE id = ?
-            `).get(req.params.id);
+        const application = db.prepare(`
+            SELECT *
+            FROM applications
+            WHERE id = ?
+        `).get(req.params.id);
 
         if (!application) {
             return res.sendStatus(404);
         }
 
-        if (
-            application.status === "APPROVED"
-        ) {
+        if (application.status === "APPROVED") {
             return res.status(400).json({
                 error: "ALREADY_APPROVED"
             });
         }
 
-        let username =
-            cleanUsername(
-                application.name,
-                application.id
-            );
+        let username = cleanUsername(
+            application.name,
+            application.id
+        );
 
         while (
             db.prepare(`
@@ -904,37 +823,30 @@ app.post(
                     .toString("hex");
         }
 
-        const password =
-            randomPassword();
+        const password = randomPassword();
 
-        const rank =
-            "AGENT";
+        const rank = "AGENT";
+        const clearance = "RESTRICTED";
 
-        const clearance =
-            "RESTRICTED";
-
-        const info =
-            db.prepare(`
-                INSERT INTO users (
-                    username,
-                    password,
-                    rank,
-                    unit,
-                    clearance,
-                    in_game_name
-                )
-                VALUES (?, ?, ?, ?, ?, ?)
-            `).run(
+        const result = db.prepare(`
+            INSERT INTO users
+            (
                 username,
-                bcrypt.hashSync(
-                    password,
-                    12
-                ),
+                password,
                 rank,
-                application.unit,
+                unit,
                 clearance,
-                application.name
-            );
+                in_game_name
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+            username,
+            bcrypt.hashSync(password, 12),
+            rank,
+            application.unit,
+            clearance,
+            application.name
+        );
 
         db.prepare(`
             UPDATE applications
@@ -945,7 +857,7 @@ app.post(
             WHERE id = ?
         `).run(
             "APPROVED",
-            info.lastInsertRowid,
+            result.lastInsertRowid,
             application.id
         );
 
@@ -961,7 +873,8 @@ CLEARANCE: ${clearance}
 Keep these credentials private.`;
 
         db.prepare(`
-            INSERT INTO messages (
+            INSERT INTO messages
+            (
                 sender_id,
                 sender_label,
                 recipient_user,
@@ -974,7 +887,7 @@ Keep these credentials private.`;
         `).run(
             req.session.user.id,
             req.session.user.rank,
-            info.lastInsertRowid,
+            result.lastInsertRowid,
             application.id,
             "ACCOUNT ISSUED",
             body,
@@ -982,7 +895,8 @@ Keep these credentials private.`;
         );
 
         db.prepare(`
-            INSERT INTO messages (
+            INSERT INTO messages
+            (
                 sender_id,
                 sender_label,
                 recipient_application,
@@ -1014,15 +928,14 @@ Keep these credentials private.`;
     }
 );
 
-/* =========================================================
-   REJECT APPLICATION
-========================================================= */
+// ======================================================
+// REJECT APPLICATION
+// ======================================================
 
 app.post(
     "/api/admin/application/:id/reject",
     admin,
     (req, res) => {
-
         db.prepare(`
             UPDATE applications
             SET
@@ -1046,15 +959,14 @@ app.post(
     }
 );
 
-/* =========================================================
-   USERS
-========================================================= */
+// ======================================================
+// USERS
+// ======================================================
 
 app.get(
     "/api/admin/users",
     admin,
     (req, res) => {
-
         res.json(
             db.prepare(`
                 SELECT
@@ -1072,15 +984,17 @@ app.get(
     }
 );
 
-/* =========================================================
-   CREATE USER
-========================================================= */
+// ======================================================
+// CREATE USER
+// ======================================================
+
+// ALPHA لا يتم منحها من الموقع.
+// الموقع يسمح بإنشاء الرتب العادية فقط.
 
 app.post(
     "/api/admin/users",
     command,
     (req, res) => {
-
         const {
             username,
             password,
@@ -1089,16 +1003,12 @@ app.post(
             clearance
         } = req.body;
 
-        /*
-            ALPHA cannot be created through
-            this endpoint.
-        */
-
         if (
             !username ||
             !password ||
-            !RANKS.includes(rank) ||
             !unit ||
+            !RANKS.includes(rank) ||
+            rank === "ALPHA" ||
             !Object.prototype.hasOwnProperty.call(
                 clearanceRank,
                 clearance
@@ -1110,30 +1020,25 @@ app.post(
         }
 
         try {
-
-            const result =
-                db.prepare(`
-                    INSERT INTO users (
-                        username,
-                        password,
-                        rank,
-                        unit,
-                        clearance,
-                        in_game_name
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `).run(
+            const result = db.prepare(`
+                INSERT INTO users
+                (
                     username,
-                    bcrypt.hashSync(
-                        password,
-                        12
-                    ),
+                    password,
                     rank,
                     unit,
                     clearance,
-                    req.body.in_game_name ||
-                        username
-                );
+                    in_game_name
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+            `).run(
+                username,
+                bcrypt.hashSync(password, 12),
+                rank,
+                unit,
+                clearance,
+                req.body.in_game_name || username
+            );
 
             audit(
                 req,
@@ -1143,12 +1048,9 @@ app.post(
 
             res.json({
                 ok: true,
-                id:
-                    result.lastInsertRowid
+                id: result.lastInsertRowid
             });
-
-        } catch (error) {
-
+        } catch {
             res.status(400).json({
                 error: "USERNAME_EXISTS"
             });
@@ -1156,15 +1058,14 @@ app.post(
     }
 );
 
-/* =========================================================
-   SEND MESSAGE
-========================================================= */
+// ======================================================
+// SEND MESSAGE
+// ======================================================
 
 app.post(
     "/api/admin/message",
     admin,
     (req, res) => {
-
         const {
             target,
             subject,
@@ -1185,29 +1086,25 @@ app.post(
         if (
             String(target).startsWith("app:")
         ) {
+            const id = Number(
+                String(target).slice(4)
+            );
 
-            const id =
-                Number(
-                    String(target)
-                        .slice(4)
-                );
-
-            const application =
-                db.prepare(`
-                    SELECT id
-                    FROM applications
-                    WHERE id = ?
-                `).get(id);
+            const application = db.prepare(`
+                SELECT id
+                FROM applications
+                WHERE id = ?
+            `).get(id);
 
             if (!application) {
                 return res.status(404).json({
-                    error:
-                        "APPLICATION_NOT_FOUND"
+                    error: "APPLICATION_NOT_FOUND"
                 });
             }
 
             db.prepare(`
-                INSERT INTO messages (
+                INSERT INTO messages
+                (
                     sender_id,
                     sender_label,
                     recipient_application,
@@ -1236,12 +1133,11 @@ app.post(
             });
         }
 
-        const user =
-            db.prepare(`
-                SELECT id
-                FROM users
-                WHERE username = ?
-            `).get(target);
+        const user = db.prepare(`
+            SELECT id
+            FROM users
+            WHERE username = ?
+        `).get(target);
 
         if (!user) {
             return res.status(404).json({
@@ -1250,7 +1146,8 @@ app.post(
         }
 
         db.prepare(`
-            INSERT INTO messages (
+            INSERT INTO messages
+            (
                 sender_id,
                 sender_label,
                 recipient_user,
@@ -1280,54 +1177,50 @@ app.post(
     }
 );
 
-/* =========================================================
-   REPORT UPLOAD
-========================================================= */
+// ======================================================
+// REPORT UPLOAD
+// ======================================================
 
 app.post(
     "/api/admin/reports",
     admin,
     upload.single("pdf"),
     (req, res) => {
-
         if (
             !req.body.title ||
             !req.file
         ) {
             return res.status(400).json({
-                error:
-                    "TITLE_AND_PDF_REQUIRED"
+                error: "TITLE_AND_PDF_REQUIRED"
             });
         }
 
-        const finalPath =
-            path.join(
-                uploadsDir,
-                req.file.filename +
-                    ".pdf"
-            );
+        const finalPath = path.join(
+            uploads,
+            req.file.filename + ".pdf"
+        );
 
         fs.renameSync(
             req.file.path,
             finalPath
         );
 
-        const result =
-            db.prepare(`
-                INSERT INTO reports (
-                    title,
-                    author,
-                    classification,
-                    file
-                )
-                VALUES (?, ?, ?, ?)
-            `).run(
-                req.body.title,
-                req.session.user.id,
-                req.body.classification ||
-                    "CONFIDENTIAL",
-                finalPath
-            );
+        const result = db.prepare(`
+            INSERT INTO reports
+            (
+                title,
+                author,
+                classification,
+                file
+            )
+            VALUES (?, ?, ?, ?)
+        `).run(
+            req.body.title,
+            req.session.user.id,
+            req.body.classification ||
+                "CONFIDENTIAL",
+            finalPath
+        );
 
         audit(
             req,
@@ -1337,27 +1230,24 @@ app.post(
 
         res.json({
             ok: true,
-            id:
-                result.lastInsertRowid
+            id: result.lastInsertRowid
         });
     }
 );
 
-/* =========================================================
-   VIEW REPORT
-========================================================= */
+// ======================================================
+// VIEW REPORT
+// ======================================================
 
 app.get(
     "/api/reports/:id",
     auth,
     (req, res) => {
-
-        const report =
-            db.prepare(`
-                SELECT *
-                FROM reports
-                WHERE id = ?
-            `).get(req.params.id);
+        const report = db.prepare(`
+            SELECT *
+            FROM reports
+            WHERE id = ?
+        `).get(req.params.id);
 
         if (
             !report ||
@@ -1376,202 +1266,99 @@ app.get(
             `report=${report.id}`
         );
 
-        res
-            .type("application/pdf")
-            .sendFile(
-                path.resolve(
-                    report.file
-                )
-            );
+        res.type("application/pdf");
+
+        res.sendFile(
+            path.resolve(report.file)
+        );
     }
 );
 
-/* =========================================================
-   ALPHA AUDIT LOGS
-========================================================= */
+// ======================================================
+// ALPHA PRIVATE AUDIT LOG
+// ======================================================
 
-/*
-    ONLY ALPHA can access this endpoint.
-
-    Even COMMAND OF CIA cannot access it.
-*/
+// هذا المسار لا يعمل إلا مع ALPHA.
+// لا يستطيع AGENT أو AGENT OFFICER أو COMMAND الوصول إليه.
 
 app.get(
     "/api/command/audit",
     alphaOnly,
     (req, res) => {
+        const logs = db.prepare(`
+            SELECT
+                id,
+                actor,
+                actor_label,
+                action,
+                ip,
+                details,
+                created_at
+            FROM audit
+            ORDER BY id DESC
+            LIMIT 500
+        `).all();
 
-        const logs =
-            db.prepare(`
-                SELECT
-                    id,
-                    actor,
-                    actor_label,
-                    action,
-                    user_agent,
-                    details,
-                    created_at
-                FROM audit
-                ORDER BY id DESC
-                LIMIT 500
-            `).all();
-
-        res.json({
-            ok: true,
-            logs
-        });
+        res.json(logs);
     }
 );
 
-/* =========================================================
-   ALPHA LOG PAGE DATA
-========================================================= */
+// ======================================================
+// ALPHA LOG COUNT
+// ======================================================
 
 app.get(
-    "/api/alpha/logs",
+    "/api/command/audit/count",
     alphaOnly,
     (req, res) => {
+        const result = db.prepare(`
+            SELECT COUNT(*) AS count
+            FROM audit
+        `).get();
 
-        const logs =
-            db.prepare(`
-                SELECT
-                    id,
-                    actor,
-                    actor_label,
-                    action,
-                    user_agent,
-                    details,
-                    created_at
-                FROM audit
-                ORDER BY id DESC
-                LIMIT 500
-            `).all();
-
-        res.json({
-            ok: true,
-            logs
-        });
+        res.json(result);
     }
 );
 
-/* =========================================================
-   SECTOR
-========================================================= */
+// ======================================================
+// SECTOR
+// ======================================================
 
 app.get(
     "/api/sector",
     auth,
     (req, res) => {
-
-        const users =
-            db.prepare(`
-                SELECT
-                    id,
-                    username,
-                    in_game_name,
-                    rank,
-                    unit,
-                    clearance,
-                    created_at
-                FROM users
-                ORDER BY
-                    CASE rank
-                        WHEN 'ALPHA' THEN 1
-                        WHEN 'COMMAND OF CIA' THEN 2
-                        WHEN 'AGENT OFFICER' THEN 3
-                        ELSE 4
-                    END,
-                    id
-            `).all();
+        const users = db.prepare(`
+            SELECT
+                id,
+                username,
+                in_game_name,
+                rank,
+                unit,
+                clearance,
+                created_at
+            FROM users
+            ORDER BY
+                CASE rank
+                    WHEN 'ALPHA' THEN 1
+                    WHEN 'COMMAND OF CIA' THEN 2
+                    WHEN 'AGENT OFFICER' THEN 3
+                    ELSE 4
+                END,
+                id
+        `).all();
 
         res.json(users);
     }
 );
 
-/* =========================================================
-   HEALTH CHECK
-========================================================= */
-
-app.get(
-    "/health",
-    (req, res) => {
-
-        res.json({
-            status: "ok",
-            service: "CIA RP",
-            time: new Date().toISOString()
-        });
-    }
-);
-
-/* =========================================================
-   STATIC WEBSITE
-========================================================= */
-
-/*
-    Your index.html must be here:
-
-    public/
-      index.html
-      css/
-      js/
-      images/
-*/
-
-app.use(
-    express.static(publicDir)
-);
-
-/*
-    If the user opens "/",
-    explicitly serve public/index.html.
-*/
-
-app.get(
-    "/",
-    (req, res) => {
-
-        const indexPath =
-            path.join(
-                publicDir,
-                "index.html"
-            );
-
-        if (!fs.existsSync(indexPath)) {
-            return res.status(404).send(
-                "index.html not found. Put index.html inside the public folder."
-            );
-        }
-
-        res.sendFile(indexPath);
-    }
-);
-
-/* =========================================================
-   404 API
-========================================================= */
-
-app.use(
-    "/api",
-    (req, res) => {
-
-        res.status(404).json({
-            error: "API_NOT_FOUND"
-        });
-    }
-);
-
-/* =========================================================
-   ERROR HANDLER
-========================================================= */
+// ======================================================
+// ERROR HANDLER
+// ======================================================
 
 app.use(
     (err, req, res, next) => {
-
-        console.error(
-            "[SERVER ERROR]",
-            err
-        );
+        console.error(err);
 
         if (res.headersSent) {
             return next(err);
@@ -1580,53 +1367,63 @@ app.use(
         res.status(500).json({
             error: "SERVER_ERROR",
             message:
-                process.env.NODE_ENV ===
-                "development"
+                process.env.NODE_ENV === "development"
                     ? err.message
                     : "Internal server error"
         });
     }
 );
 
-/* =========================================================
-   START
-========================================================= */
+// ======================================================
+// STATIC WEBSITE
+// ======================================================
+
+// index.html لازم يكون هنا:
+// public/index.html
+
+const publicPath = path.join(
+    __dirname,
+    "public"
+);
+
+app.use(
+    express.static(publicPath)
+);
+
+// إذا دخل / وكان index.html موجود داخل public
+app.get("/", (req, res) => {
+    const indexPath = path.join(
+        publicPath,
+        "index.html"
+    );
+
+    if (!fs.existsSync(indexPath)) {
+        return res.status(404).send(
+            "index.html not found. Make sure your index.html is inside the public folder."
+        );
+    }
+
+    res.sendFile(indexPath);
+});
+
+// ======================================================
+// START
+// ======================================================
 
 app.listen(
     PORT,
     HOST,
     () => {
-
         console.log(
-            "================================="
+            `CIA RP running on http://${HOST}:${PORT}`
         );
 
         console.log(
-            "CIA RP SERVER ONLINE"
+            `Public folder: ${publicPath}`
         );
 
         console.log(
-            `Port: ${PORT}`
-        );
-
-        console.log(
-            `Host: ${HOST}`
-        );
-
-        console.log(
-            "Alpha account: code_alpha"
-        );
-
-        console.log(
-            "Alpha rank: ALPHA"
-        );
-
-        console.log(
-            "Audit logs: ALPHA ONLY"
-        );
-
-        console.log(
-            "================================="
+            `Database: ${dbPath}`
         );
     }
 );
